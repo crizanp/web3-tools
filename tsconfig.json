@@ -20,7 +20,8 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "target": "ES2015"  // Add this line
   },
   "include": [
     "next-env.d.ts",
