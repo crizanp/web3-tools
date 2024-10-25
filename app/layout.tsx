@@ -1,5 +1,5 @@
 import './globals.css';
-import Navbar from './components/Navbar'; 
+import LayoutWrapper from './components/LayoutWrapper'; // New Client Component for Navbar/Footer
 
 export const metadata = {
   title: 'Cute Blog',
@@ -10,8 +10,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <Navbar />
-        {children}
+        <LayoutWrapper> {/* Use Client Component to handle both layouts */}
+          {children}
+        </LayoutWrapper>
       </body>
     </html>
   );

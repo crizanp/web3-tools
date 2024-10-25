@@ -1,0 +1,155 @@
+"use client";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation"; // Use useParams for dynamic routing in the App Router
+import { motion } from "framer-motion";
+import Link from "next/link"; // Import Link for navigation
+import PuffLoader from "react-spinners/PuffLoader"; // Import PuffLoader for the spinner
+
+// Function to remove HTML tags and return plain text
+const stripHtml = (html) => {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return doc.body.textContent || "";
+};
+
+// Function to safely get a string from useParams (handles string[] or string)
+const safeParamToString = (param) => {
+  return Array.isArray(param) ? param.join("") : param;
+};
+
+export default function NotesDetailPage() {
+  const { subjectName, semesterName } = useParams(); // Get subject and semester from the dynamic URL
+  const [posts, setPosts] = useState([]); // Store posts for the subject
+  const [loading, setLoading] = useState(true); // Loading state for fetching
+
+  // Convert subjectName and semesterName safely to strings
+  const subjectNameStr = safeParamToString(subjectName);
+  const semesterNameStr = safeParamToString(semesterName);
+
+  useEffect(() => {
+    if (!subjectNameStr || !semesterNameStr) return;
+
+    // Fetch posts for the selected subject and semester
+    async function fetchPosts() {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/semesters/${semesterNameStr}/subjects/${subjectNameStr}/posts`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch posts");
+
+        const data = await res.json();
+        setPosts(data);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      } finally {
+        setLoading(false); // Set loading to false after fetching
+      }
+    }
+
+    fetchPosts();
+  }, [subjectNameStr, semesterNameStr]);
+
+  // Display the loader while data is being fetched
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <PuffLoader color="#36D7B7" size={150} />
+      </div>
+    );
+  }
+
+  // Breadcrumb navigation
+  const breadcrumbItems = [
+    { name: "Engineering Notes", href: "/notes" },
+    { name: subjectNameStr.replace(/%20/g, " "), href: `/notes/${semesterNameStr}/subject/${subjectNameStr}` },
+  ];
+
+  return (
+    <main className="p-10 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen">
+      {/* Breadcrumb Navigation */}
+      <nav className="mb-6">
+        <ul className="flex flex-wrap text-white text-sm space-x-2">
+          {breadcrumbItems.map((item, index) => (
+            <li key={index} className="flex items-center">
+              <Link href={item.href} className="hover:underline">
+                {item.name}
+              </Link>
+              {index < breadcrumbItems.length - 1 && (
+                <span className="mx-2 text-gray-400">/</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* Motivational Section at the Top */}
+      <section className="mb-10 text-white text-center">
+        <div className="mx-auto text-gray-200 text-left space-y-4 leading-relaxed">
+          <p>
+            Studying isn't just about reading through the notes. Sure, these
+            resources will give you a strong foundation, but remember, a strong
+            foundation is just the beginning of building a great skyscraper of
+            knowledge.
+          </p>
+          <p>
+            Don't just stop at the notes provided here! Your library has
+            treasures waiting for you. Find the best author on the topic, crack
+            open that hefty book, and dive deep. Because as they say, "A mind
+            needs books as a sword needs a whetstone." (Yes, I totally borrowed
+            that from *Game of Thrones*, but it fits!)
+          </p>
+          <p>
+            "Learning never exhausts the mind," said Leonardo da Vinci, but you
+            can bet sticking to just the syllabus might bore it to pieces. Go
+            beyond, explore, experiment, and get curious! After all, "Google is
+            great, but the library is still magic."
+          </p>
+        </div>
+      </section>
+
+      {/* Posts for the Subject */}
+      <h2 className="text-4xl font-bold text-white text-center mb-10">
+        Notes for {subjectNameStr.replace("%20", " ")}
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {posts.length > 0 ? (
+          posts.map((post) => (
+            <Link
+              href={`/notes/${semesterNameStr}/subject/${subjectNameStr}/post/${post.slug}`} // Update the dynamic link to use post.slug
+              key={post._id}
+            >
+              <motion.div
+                className="cursor-pointer bg-gray-900 text-gray-300 p-6 rounded-lg shadow-lg border border-gray-700 hover:shadow-xl hover:border-blue-600 transition-all duration-300 ease-in-out"
+                whileHover={{ scale: 1.05 }}
+              >
+                <div className="flex flex-col justify-between h-full">
+                  <div>
+                    <h3 className="text-2xl font-bold mb-4 text-blue-400">
+                      {post.title}
+                    </h3>
+                    <p className="text-base text-gray-400 mb-6">
+                      {stripHtml(post.excerpt || post.content.slice(0, 100)) +
+                        "..."}
+                    </p>
+                  </div>
+                  <div className="text-sm text-blue-300 font-semibold">
+                    <p>Read More</p>
+                  </div>
+                </div>
+              </motion.div>
+            </Link>
+          ))
+        ) : (
+          <p className="text-center text-white">No posts found</p>
+        )}
+      </div>
+    </main>
+  );
+}
