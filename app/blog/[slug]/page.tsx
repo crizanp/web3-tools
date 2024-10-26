@@ -97,18 +97,22 @@ const customParseOptions = (headingList) => ({
         };
 
         return (
-          <div className="relative bg-white p-4 rounded-md overflow-x-auto mb-5">
-            <pre className="text-black">
-              <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
-            </pre>
-            <button
-              className={`absolute top-2 right-2 text-sm px-2 py-1 rounded ${copied ? "bg-green-500" : "bg-gray-700"
-                } text-white hover:bg-gray-600`}
-              onClick={handleCopyCode}
-            >
-              {copied ? "Copied!" : "Copy Code"}
-            </button>
-          </div>
+          <div className="relative bg-white text-sm p-2 rounded-md overflow-x-auto mb-3 shadow-md">
+  <pre className="text-black">
+    <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
+  </pre>
+  <button
+    className={`absolute top-0.5 right-2 text-xs px-2 py-2 rounded-md font-semibold shadow-sm transition-colors duration-200 ${
+      copied
+        ? "bg-blue-600 text-white hover:bg-blue-500"
+        : "bg-gray-800 text-white hover:bg-gray-700"
+    }`}
+    onClick={handleCopyCode}
+  >
+    {copied ? "Copied!" : "Copy Code"}
+  </button>
+</div>
+
         );
       };
 

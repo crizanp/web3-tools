@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation"; // Use useParams for dynamic routing in the App Router
+import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import Link from "next/link"; // Import Link for navigation
-import PuffLoader from "react-spinners/PuffLoader"; // Import PuffLoader for the spinner
+import Link from "next/link";
+import PuffLoader from "react-spinners/PuffLoader";
 
 // Function to remove HTML tags and return plain text
 const stripHtml = (html) => {
@@ -11,24 +11,24 @@ const stripHtml = (html) => {
   return doc.body.textContent || "";
 };
 
-// Function to safely get a string from useParams (handles string[] or string)
+// Function to safely get a decoded string from useParams (handles string[] or string)
 const safeParamToString = (param) => {
-  return Array.isArray(param) ? param.join("") : param;
+  const paramString = Array.isArray(param) ? param.join("") : param;
+  return decodeURIComponent(paramString || "");
 };
 
 export default function NotesDetailPage() {
-  const { subjectName, semesterName } = useParams(); // Get subject and semester from the dynamic URL
-  const [posts, setPosts] = useState([]); // Store posts for the subject
-  const [loading, setLoading] = useState(true); // Loading state for fetching
+  const { subjectName, semesterName } = useParams();
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Convert subjectName and semesterName safely to strings
+  // Convert subjectName and semesterName safely to decoded strings
   const subjectNameStr = safeParamToString(subjectName);
   const semesterNameStr = safeParamToString(semesterName);
 
   useEffect(() => {
     if (!subjectNameStr || !semesterNameStr) return;
 
-    // Fetch posts for the selected subject and semester
     async function fetchPosts() {
       try {
         const res = await fetch(
@@ -48,14 +48,13 @@ export default function NotesDetailPage() {
       } catch (error) {
         console.error("Error fetching posts:", error);
       } finally {
-        setLoading(false); // Set loading to false after fetching
+        setLoading(false);
       }
     }
 
     fetchPosts();
   }, [subjectNameStr, semesterNameStr]);
 
-  // Display the loader while data is being fetched
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
@@ -67,7 +66,8 @@ export default function NotesDetailPage() {
   // Breadcrumb navigation
   const breadcrumbItems = [
     { name: "Engineering Notes", href: "/notes" },
-    { name: subjectNameStr.replace(/%20/g, " "), href: `/notes/${semesterNameStr}/subject/${subjectNameStr}` },
+    { name: semesterNameStr, href: `/notes/${semesterNameStr}` },
+    { name: subjectNameStr, href: `/notes/${semesterNameStr}/subject/${subjectNameStr}` },
   ];
 
   return (
@@ -115,14 +115,14 @@ export default function NotesDetailPage() {
 
       {/* Posts for the Subject */}
       <h2 className="text-4xl font-bold text-white text-center mb-10">
-        Notes for {subjectNameStr.replace("%20", " ")}
+        Notes for {subjectNameStr}
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {posts.length > 0 ? (
           posts.map((post) => (
             <Link
-              href={`/notes/${semesterNameStr}/subject/${subjectNameStr}/post/${post.slug}`} // Update the dynamic link to use post.slug
+              href={`/notes/${semesterNameStr}/subject/${subjectNameStr}/post/${post.slug}`}
               key={post._id}
             >
               <motion.div
