@@ -89,32 +89,32 @@ const customParseOptions = (headingList) => ({
 
       const CopyableCode = () => {
         const [copied, setCopied] = useState(false);
-
+      
         const handleCopyCode = () => {
           navigator.clipboard.writeText(codeContent);
           setCopied(true);
-          setTimeout(() => setCopied(false), 5000);
+          setTimeout(() => setCopied(false), 2000); // Reset "Copied!" message
         };
-
+      
         return (
-          <div className="relative bg-white text-sm p-2 rounded-md overflow-x-auto mb-3 shadow-md">
-  <pre className="text-black">
-    <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
-  </pre>
-  <button
-    className={`absolute top-0.5 right-2 text-xs px-2 py-2 rounded-md font-semibold shadow-sm transition-colors duration-200 ${
-      copied
-        ? "bg-blue-600 text-white hover:bg-blue-500"
-        : "bg-gray-800 text-white hover:bg-gray-700"
-    }`}
-    onClick={handleCopyCode}
-  >
-    {copied ? "Copied!" : "Copy Code"}
-  </button>
-</div>
-
+          <div className="relative bg-[#282c34] p-5 rounded-lg mb-6 shadow-lg overflow-x-auto">
+            <pre className="text-sm font-mono text-gray-200 leading-relaxed whitespace-pre-wrap">
+              <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
+            </pre>
+            <button
+              className={`absolute top-1.5 right-2 text-xs px-2 py-2 rounded-md font-semibold shadow-sm transition-colors duration-200 ${copied
+                  ? "bg-blue-300 text-gray-800 hover:bg-blue-500"
+                  : "bg-gray-600 text-white hover:bg-gray-700"
+                }`}
+              onClick={handleCopyCode}
+            >
+              {copied ? "Copied!" : "Copy Code"}
+            </button>
+          </div>
         );
       };
+      
+      
 
       return <CopyableCode />;
     }
