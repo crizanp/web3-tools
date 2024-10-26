@@ -87,6 +87,7 @@ export default function CategoryPage({ params }) {
         {`Posts in ${category.charAt(0).toUpperCase() + category.slice(1)}`}
       </h1>
 
+
       {/* Conditional Rendering based on the "Reading" category */}
       {category.toLowerCase() === "reading" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
