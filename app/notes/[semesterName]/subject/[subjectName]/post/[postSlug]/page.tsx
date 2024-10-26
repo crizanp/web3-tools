@@ -182,7 +182,7 @@ if (post) {
           {breadcrumbItems.map((item, index) => (
             <li key={index} className="flex items-center">
               <Link href={item.href} className="hover:underline">
-                {item.name.replace(/%20/g, " ")}
+              {(item.name as string).replace(/%20/g, " ")}
               </Link>
               {index < breadcrumbItems.length - 1 && (
                 <span className="mx-2 text-gray-400">/</span>
