@@ -25,3 +25,11 @@ body {
     text-wrap: balance;
   }
 }
+/* globals.css */
+.ql-font-monospace {
+  font-family: "Courier New", Courier, monospace;
+  background-color: #1e1e1e; /* Dark background for readability */
+  color: #d4d4d4;            /* Light text color */
+  padding: 0.2rem 0.4rem;    /* Some padding around text */
+  border-radius: 4px;        /* Rounded corners */
+}
