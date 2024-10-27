@@ -71,7 +71,7 @@ export default function NotesDetailPage() {
   ];
 
   return (
-    <main className="p-10 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen">
+    <main className="p-4 sm:p-6 lg:p-10 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen">
       {/* Breadcrumb Navigation */}
       <nav className="mb-6">
         <ul className="flex flex-wrap text-white text-sm space-x-2">
@@ -89,8 +89,8 @@ export default function NotesDetailPage() {
       </nav>
 
       {/* Motivational Section at the Top */}
-      <section className="mb-10 text-white text-center">
-        <div className="mx-auto text-gray-200 text-left space-y-4 leading-relaxed">
+      <section className="mb-10 text-white text-center px-2 sm:px-4 lg:px-0">
+        <div className="mx-auto text-gray-200 text-left space-y-4 leading-relaxed max-w-3xl">
           <p>
             Studying isn't just about reading through the notes. Sure, these
             resources will give you a strong foundation, but remember, a strong
@@ -114,11 +114,11 @@ export default function NotesDetailPage() {
       </section>
 
       {/* Posts for the Subject */}
-      <h2 className="text-4xl font-bold text-white text-center mb-10">
+      <h2 className="text-3xl sm:text-4xl font-bold text-white text-center mb-10">
         Notes for {subjectNameStr}
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.length > 0 ? (
           posts.map((post) => (
             <Link
@@ -126,15 +126,15 @@ export default function NotesDetailPage() {
               key={post._id}
             >
               <motion.div
-                className="cursor-pointer bg-gray-900 text-gray-300 p-6 rounded-lg shadow-lg border border-gray-700 hover:shadow-xl hover:border-blue-600 transition-all duration-300 ease-in-out"
+                className="cursor-pointer bg-gray-900 text-gray-300 p-4 sm:p-6 rounded-lg shadow-lg border border-gray-700 hover:shadow-xl hover:border-blue-600 transition-all duration-300 ease-in-out"
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="flex flex-col justify-between h-full">
                   <div>
-                    <h3 className="text-2xl font-bold mb-4 text-blue-400">
+                    <h3 className="text-xl sm:text-2xl font-bold mb-4 text-blue-400">
                       {post.title}
                     </h3>
-                    <p className="text-base text-gray-400 mb-6">
+                    <p className="text-sm sm:text-base text-gray-400 mb-6">
                       {stripHtml(post.excerpt || post.content.slice(0, 100)) +
                         "..."}
                     </p>
@@ -147,7 +147,9 @@ export default function NotesDetailPage() {
             </Link>
           ))
         ) : (
-          <p className="text-center text-white">No posts found</p>
+          <p className="text-center text-white col-span-1 sm:col-span-2 lg:col-span-3">
+            No posts found
+          </p>
         )}
       </div>
     </main>

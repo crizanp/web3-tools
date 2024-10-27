@@ -79,31 +79,47 @@ export default function NotesPage() {
   }
 
   return (
-    <main className="p-10 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen">
+    <main className="p-4 sm:p-6 lg:p-10 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen">
       {/* Introduction Section */}
-      <section className="mb-12 text-white">
-        <h1 className="text-4xl font-bold text-center mb-6">Welcome to Computer Engineering!</h1>
-        <div className="mx-auto text-gray-200 space-y-4 leading-relaxed">
+      <section className="mb-12 text-white text-center px-2 sm:px-4 lg:px-0">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-6">
+          Welcome to Computer Engineering!
+        </h1>
+        <div className="mx-auto text-gray-200 space-y-4 leading-relaxed max-w-3xl">
           <p>
-            Computer Engineering is more than just writing code—it's about understanding how computers work from the ground up. Whether you're learning about microprocessors or designing complex algorithms, each topic builds the foundation for the technology-driven world we live in today.
+            Computer Engineering is more than just writing code—it's about
+            understanding how computers work from the ground up. Whether you're
+            learning about microprocessors or designing complex algorithms, each
+            topic builds the foundation for the technology-driven world we live
+            in today.
           </p>
           <p>
-            But here's the thing: success in Computer Engineering isn't just about sticking to the syllabus. While the curriculum gives you a solid foundation, it's important to go beyond what's taught in class. Why? Because the world of tech evolves rapidly. New frameworks, languages, and tools are constantly emerging, and companies value those who can adapt and learn on the go.
+            But here's the thing: success in Computer Engineering isn't just
+            about sticking to the syllabus. While the curriculum gives you a
+            solid foundation, it's important to go beyond what's taught in
+            class. Why? Because the world of tech evolves rapidly. New
+            frameworks, languages, and tools are constantly emerging, and
+            companies value those who can adapt and learn on the go.
           </p>
           <p>
-            So, how should you study? Dive deep into the subjects, but don't be afraid to experiment. Take on side projects, contribute to open source, or simply explore areas that spark your interest. This extra learning will not only make you a better engineer but will also prepare you for real-world challenges. The classroom is just the beginning—your journey in tech is much bigger!
+            So, how should you study? Dive deep into the subjects, but don't be
+            afraid to experiment. Take on side projects, contribute to open
+            source, or simply explore areas that spark your interest. This extra
+            learning will not only make you a better engineer but will also
+            prepare you for real-world challenges. The classroom is just the
+            beginning—your journey in tech is much bigger!
           </p>
         </div>
       </section>
 
       {/* Semester Tabs */}
-      <div className="flex flex-wrap justify-center mb-8 space-x-4">
+      <div className="flex flex-wrap justify-center mb-8 gap-4">
         {semesters.length > 0 ? (
           semesters.map((semester) => (
             <button
               key={semester._id}
-              onClick={() => setSelectedSemester(semester.name)} // Use semester name instead of ID
-              className={`py-2 px-4 rounded-t-lg ${
+              onClick={() => setSelectedSemester(semester.name)}
+              className={`py-2 px-4 rounded-lg ${
                 selectedSemester === semester.name
                   ? "bg-blue-600 text-white"
                   : "bg-gray-700 text-gray-300"
@@ -123,7 +139,7 @@ export default function NotesPage() {
           <PuffLoader color="#36D7B7" size={100} />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {subjects.length > 0 ? (
             subjects.map((subject) => (
               <Link
@@ -139,7 +155,9 @@ export default function NotesPage() {
               </Link>
             ))
           ) : (
-            <p className="text-center text-white">No subjects found</p>
+            <p className="text-center text-white col-span-1 sm:col-span-2 lg:col-span-3">
+              No subjects found
+            </p>
           )}
         </div>
       )}

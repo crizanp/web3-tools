@@ -32,9 +32,8 @@ export default function HomePage() {
       </div>
     );
   }
-
   return (
-    <main className="p-10 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen relative">
+    <main className="p-2 pb-8 sm:p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen relative">
       {/* Hero Section */}
       <section className="text-center py-20">
         <motion.h1

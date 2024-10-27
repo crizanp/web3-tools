@@ -319,7 +319,9 @@ export default function BlogDetail({ params }) {
   }
   if (!post) return notFound();
   return (
-    <div className="relative min-h-screen bg-gray-900 text-white p-10">
+    <div className="relative min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-10">
+
+
       <FloatingBubbles /> {/* Add floating bubbles */}
 
       {/* Main Content Layout */}
@@ -327,7 +329,7 @@ export default function BlogDetail({ params }) {
 
         {/* Main Content */}
         <main className="lg:w-3/4">
-          <h1 className="text-5xl font-bold mb-5 text-center">{post.title}</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-5 text-center">{post.title}</h1>
           <p className="text-gray-400 mb-5 text-center">{formatDate(post.createdAt)}</p>
 
           {/* Image */}

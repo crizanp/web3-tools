@@ -115,7 +115,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
 
 
   return (
-    <main className="relative min-h-screen bg-gray-900 text-white p-10">
+    <main className="relative min-h-screen bg-gray-900 text-white px-4 py-8 sm:p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12">
       <FloatingBubbles />
       <h1 className="text-5xl font-bold mb-10 text-center text-gray-200 neon-glow">
         {`Posts in ${category.charAt(0).toUpperCase() + category.slice(1)}`}

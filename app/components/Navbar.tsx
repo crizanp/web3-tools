@@ -17,7 +17,7 @@ export default function Navbar() {
           <div className="flex items-center">
             {/* Logo */}
             <Link href="/" className="text-white text-3xl font-bold">
-              Crizan Np
+              Crizan
             </Link>
           </div>
 

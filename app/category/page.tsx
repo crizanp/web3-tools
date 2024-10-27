@@ -71,7 +71,7 @@ export default function CategoriesPage() {
   }, []);
 
   return (
-    <main className="p-10 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen">
+    <main className="p-2 sm:p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen">
       {/* Spinner to show during loading */}
       <Spinner loading={loading} />
 

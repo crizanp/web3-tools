@@ -1,4 +1,3 @@
-// app/translation/page.tsx
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -6,11 +5,15 @@ import { motion } from "framer-motion";
 import Sanscript from "@sanskrit-coders/sanscript";
 import Trie from "./utils/Trie";
 import { wordMappings } from "./utils/wordMappings";
-import nepaliWordsData from "./utils/nepaliWords.json" assert { type: 'json' };
+import nepaliWordsData from "./utils/nepaliWords.json" assert { type: "json" };
 import Spinner from "../components/Spinner";
 
+interface NepaliWordsData {
+  nepaliWords: string[];
+}
+
 // Extract Nepali words from the JSON file
-const nepaliWords = (nepaliWordsData as { nepaliWords: string[] }).nepaliWords;
+const nepaliWords = (nepaliWordsData as NepaliWordsData).nepaliWords;
 
 // Initialize the Trie with Nepali words using Romanized keys
 const nepaliDictionaryTrie = new Trie();
@@ -31,7 +34,18 @@ export default function TranslationPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 1000); // Simulate loading delay
+    setLoading(true); // Set loading immediately upon mounting
+    const fetchData = async () => {
+      try {
+        // Simulate a delay for data processing or fetching
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error("Error during setup:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -39,7 +53,6 @@ export default function TranslationPage() {
     setRomanInput(input);
 
     const lastWord = input.split(" ").pop()?.toLowerCase() || "";
-
     if (lastWord) {
       const trieSuggestions = nepaliDictionaryTrie.search(lastWord).slice(0, 6);
       setSuggestions(trieSuggestions);
@@ -68,13 +81,12 @@ export default function TranslationPage() {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(unicodeOutput);
     setCopyMessage("तपाईंको पाठ प्रतिलिपि भएको छ");
-    setTimeout(() => setCopyMessage(null), 3000); // Hide the message after 3 seconds
+    setTimeout(() => setCopyMessage(null), 3000);
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-900 text-white flex items-center justify-center p-5">
+    <div className="relative min-h-screen bg-gray-900 text-white flex items-center justify-center p-4 sm:p-6 lg:p-8">
       {/* Framer Motion Bubbles */}
-      {/* // Framer Motion Bubbles */}
       <motion.div
         className="absolute inset-0 overflow-hidden"
         initial={{ opacity: 0 }}
@@ -87,8 +99,8 @@ export default function TranslationPage() {
             className="absolute rounded-full opacity-30"
             style={{
               backgroundColor: `hsl(${Math.random() * 360}, 70%, 60%)`,
-              width: `${Math.random() * 100 + 50}px`,  // Circle size between 50px and 150px
-              height: `${Math.random() * 100 + 50}px`, // Keep height equal to width to ensure circles
+              width: `${Math.random() * 100 + 50}px`,
+              height: `${Math.random() * 100 + 50}px`,
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
             }}
@@ -107,23 +119,23 @@ export default function TranslationPage() {
         ))}
       </motion.div>
 
-
-      <div className="relative bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-2xl z-10">
-        <h1 className="text-2xl font-bold mb-4 text-center">
+      <div className="relative bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 w-full max-w-2xl z-10">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 text-center">
           Romanized Nepali to Nepali Unicode
         </h1>
 
-        {/* Display copy message if exists */}
         {copyMessage && (
           <div className="bg-green-600 text-white px-4 py-2 rounded-lg mb-4 text-center">
             {copyMessage}
           </div>
         )}
 
-        {/* Show Spinner while loading */}
-        <Spinner loading={loading} />
+        {loading && (
+          <div className="flex justify-center">
+            <Spinner loading={loading} />
+          </div>
+        )}
 
-        {/* Render suggestions above the input if not loading */}
         {!loading && suggestions.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2">
             {suggestions.map((suggestion, index) => (
@@ -138,39 +150,43 @@ export default function TranslationPage() {
           </div>
         )}
 
-        <div className="mb-6">
-          <label htmlFor="romanInput" className="block text-gray-400 font-bold mb-2">
-            Type Romanized Nepali
-          </label>
-          <textarea
-            id="romanInput"
-            ref={inputRef}
-            className="w-full p-3 border border-gray-600 bg-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-            placeholder="e.g., kasto chha halkhabar"
-            value={romanInput}
-            onChange={handleInputChange}
-            rows={4}
-          ></textarea>
-        </div>
+        {!loading && (
+          <>
+            <div className="mb-6">
+              <label htmlFor="romanInput" className="block text-gray-400 font-bold mb-2">
+                Type Romanized Nepali
+              </label>
+              <textarea
+                id="romanInput"
+                ref={inputRef}
+                className="w-full p-3 border border-gray-600 bg-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                placeholder="e.g., kasto chha halkhabar"
+                value={romanInput}
+                onChange={handleInputChange}
+                rows={4}
+              ></textarea>
+            </div>
 
-        <div className="relative">
-          <label htmlFor="unicodeOutput" className="block text-gray-400 font-bold mb-2">
-            Nepali Unicode (Output)
-          </label>
-          <textarea
-            id="unicodeOutput"
-            className="w-full p-3 border border-gray-600 bg-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-            value={unicodeOutput}
-            readOnly
-            rows={4}
-          ></textarea>
-          <button
-            onClick={copyToClipboard}
-            className="absolute top-5 right-2 bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-md"
-          >
-            Copy
-          </button>
-        </div>
+            <div className="relative">
+              <label htmlFor="unicodeOutput" className="block text-gray-400 font-bold mb-2">
+                Nepali Unicode (Output)
+              </label>
+              <textarea
+                id="unicodeOutput"
+                className="w-full p-3 border border-gray-600 bg-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                value={unicodeOutput}
+                readOnly
+                rows={4}
+              ></textarea>
+              <button
+                onClick={copyToClipboard}
+                className="absolute top-5 right-2 bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-md"
+              >
+                Copy
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

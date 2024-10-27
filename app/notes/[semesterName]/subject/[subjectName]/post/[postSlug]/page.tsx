@@ -1,6 +1,5 @@
 "use client";
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, notFound } from "next/navigation";
 import parse, { domToReact } from "html-react-parser";
 import Prism from "prismjs";
@@ -9,12 +8,11 @@ import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-css";
 import "prismjs/components/prism-markup";
 import { motion } from "framer-motion";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // Import FontAwesomeIcon
-import { faLink } from "@fortawesome/free-solid-svg-icons"; // Import an icon
-import PuffLoader from "react-spinners/PuffLoader"; // Import PuffLoader for spinner
-import Link from "next/link"; // Import Link for breadcrumb navigation
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLink } from "@fortawesome/free-solid-svg-icons";
+import PuffLoader from "react-spinners/PuffLoader";
+import Link from "next/link";
 
-// Floating bubbles background component
 const FloatingBubbles = () => {
   const colors = ["#4C51BF", "#ED64A6", "#9F7AEA"];
   return (
@@ -43,35 +41,26 @@ const FloatingBubbles = () => {
   );
 };
 
-// Function to extract raw text from DOM nodes (recursively)
 const getRawTextFromDomNode = (node) => {
-  if (typeof node === "string") {
-    return node;
-  }
-  if (Array.isArray(node)) {
-    return node.map(getRawTextFromDomNode).join("");
-  }
-  if (node && node.props && node.props.children) {
-    return getRawTextFromDomNode(node.props.children);
-  }
+  if (typeof node === "string") return node;
+  if (Array.isArray(node)) return node.map(getRawTextFromDomNode).join("");
+  if (node?.props?.children) return getRawTextFromDomNode(node.props.children);
   return "";
 };
 
 export default function NotesDetailPage() {
-  const { semesterName, subjectName, postSlug } = useParams(); // Get semester, subject, and postSlug from the dynamic route
+  const { semesterName, subjectName, postSlug } = useParams();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [tableOfContents, setTableOfContents] = useState([]); // Table of contents state
+  const [tableOfContents, setTableOfContents] = useState([]);
 
-  // Custom function to handle HTML parsing and highlight code blocks
   const customParseOptions = (headingList) => ({
     replace: (domNode) => {
-      if (domNode.name === "a" && domNode.attribs.href) {
-        const href = domNode.attribs.href;
+      if (domNode.name === "a" && domNode.attribs?.href) {
         return (
           <a
-            href={href}
+            href={domNode.attribs.href}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 underline hover:text-blue-700 transition-all"
@@ -89,7 +78,7 @@ export default function NotesDetailPage() {
         );
       }
 
-      if (domNode.attribs && domNode.attribs.class === "ql-syntax") {
+      if (domNode.attribs?.class === "ql-syntax") {
         const codeContent = getRawTextFromDomNode(domToReact(domNode.children));
         const language = domNode.attribs["data-language"] || "javascript";
         const highlightedCode = Prism.highlight(
@@ -99,17 +88,17 @@ export default function NotesDetailPage() {
         );
 
         return (
-          <div className="relative bg-white p-4 rounded-md overflow-x-auto mb-5">
-            <pre className="text-black">
+          <div className="relative bg-gray-900 p-4 rounded-md overflow-x-auto mb-5">
+            <pre className="text-gray-100">
               <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
             </pre>
           </div>
         );
       }
 
-      if (domNode.name === "h1" || domNode.name === "h2" || domNode.name === "h3") {
+      if (["h1", "h2", "h3"].includes(domNode.name)) {
         const headingText = getRawTextFromDomNode(domToReact(domNode.children));
-        const headingId = headingText.toString().replace(/\s+/g, "-").toLowerCase(); // Create anchor-friendly ID
+        const headingId = headingText.toLowerCase().replace(/\s+/g, "-");
 
         headingList.push({ id: headingId, text: headingText, tag: domNode.name });
 
@@ -152,15 +141,12 @@ export default function NotesDetailPage() {
     }
   }, [post]);
 
-// Breadcrumb navigation
-const breadcrumbItems = [
-  { name: "Engineering Notes", href: "/notes" },
-  { name: subjectName, href: `/notes/${semesterName}/subject/${subjectName}` },
-];
+  const breadcrumbItems = [
+    { name: "Engineering Notes", href: "/notes" },
+    { name: subjectName, href: `/notes/${semesterName}/subject/${subjectName}` },
+    post && { name: post.title, href: `/notes/${semesterName}/subject/${subjectName}/post/${postSlug}` },
+  ].filter(Boolean);
 
-if (post) {
-  breadcrumbItems.push({ name: post.title, href: `/notes/${semesterName}/subject/${subjectName}/post/${postSlug}` });
-}
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900">
@@ -173,7 +159,7 @@ if (post) {
   if (!post) return notFound();
 
   return (
-    <div className="relative min-h-screen bg-gray-900 text-white p-10">
+    <div className="relative min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-10">
       <FloatingBubbles />
 
       {/* Breadcrumb Navigation */}
@@ -182,7 +168,7 @@ if (post) {
           {breadcrumbItems.map((item, index) => (
             <li key={index} className="flex items-center">
               <Link href={item.href} className="hover:underline">
-              {(item.name as string).replace(/%20/g, " ")}
+                {item.name.replace(/%20/g, " ")}
               </Link>
               {index < breadcrumbItems.length - 1 && (
                 <span className="mx-2 text-gray-400">/</span>
@@ -193,13 +179,13 @@ if (post) {
       </nav>
 
       {/* Main Title */}
-      <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-5 text-center">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-5 text-center">
         {post.title}
       </h1>
 
       <main className="max-w-4xl mx-auto">
-        <p className="text-gray-400 mb-10 text-center">
-          {new Date(post.createdAt).toDateString()}
+        <p className="text-gray-400 mb-6 text-center">
+          {new Date(post.createdAt).toLocaleDateString()}
         </p>
 
         {tableOfContents.length > 0 && (
@@ -219,7 +205,7 @@ if (post) {
         )}
 
         <article className="prose lg:prose-xl dark:prose-invert mx-auto">
-          {post && parse(post.content, customParseOptions([]))}
+          {parse(post.content, customParseOptions([]))}
         </article>
       </main>
     </div>
