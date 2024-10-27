@@ -76,7 +76,7 @@ const TranslationPage = () => {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(unicodeOutput);
-    setCopyMessage("तपाईंको पाठ प्रतिलिपि भएको छ");
+    setCopyMessage("Text Copied");
     setTimeout(() => setCopyMessage(null), 3000); // Hide the message after 3 seconds
   };
 
@@ -166,6 +166,7 @@ const TranslationPage = () => {
             id="unicodeOutput"
             className="w-full p-3 border border-gray-600 bg-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
             value={unicodeOutput}
+            placeholder="e.g., कस्तो छ हालखबर"
             readOnly
             rows={4}
           ></textarea>
