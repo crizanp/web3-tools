@@ -33,3 +33,16 @@ body {
   border-radius: 4px;        /* Rounded corners */
 }
 
+/* styles/global.css or wherever your global styles are */
+#nprogress .bar {
+  background: #29d; /* Change this to your preferred color */
+  height: 4px; /* Adjust the height as needed */
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px #29d, 0 0 5px #29d;
+}
+
+#nprogress .spinner {
+  display: none; /* Hide the spinner if you only want the bar */
+}
