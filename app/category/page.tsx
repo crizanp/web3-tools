@@ -152,10 +152,11 @@ export default function CategoriesPage() {
                         className="bg-blue-600 text-gray-300 py-2 px-4 rounded-full cursor-pointer hover:bg-blue-700 hover:text-white transition duration-300"
                         whileHover={{ scale: 1.05 }}
                       >
-                        <Link
-                          href={`/tags/${tag.toLowerCase().replace(/\s+/g, "-")}`}
-                          className="text-gray-300"
-                        >
+                         <Link
+      key={tagIndex}
+      href={`/tags/${tag.toLowerCase().replace(/\s+/g, "-")}`}
+      className="bg-blue-600 text-gray-300 py-2 px-4 rounded-full hover:bg-blue-700 hover:text-white transition duration-300"
+    >
                           {tag}
                         </Link>
                       </motion.div>

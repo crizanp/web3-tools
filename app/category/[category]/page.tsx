@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import PuffLoader from "react-spinners/PuffLoader";
 
 // Utility function to remove HTML tags from post content
-const stripHtmlTags = (html) => {
+const stripHtmlTags = (html: string) => {
   return html.replace(/<\/?[^>]+(>|$)/g, "");
 };
 
@@ -39,11 +39,26 @@ const FloatingBubbles = () => {
   );
 };
 
-export default function CategoryPage({ params }) {
+// Define the type for post
+interface Post {
+  _id: string;
+  title: string;
+  slug: string;
+  content: string;
+  imageUrl?: string;
+}
+
+interface CategoryPageProps {
+  params: {
+    category: string;
+  };
+}
+
+export default function CategoryPage({ params }: CategoryPageProps) {
   const category = decodeURIComponent(params.category); // Decoding the category from params
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading state to manage the spinner
-  const [error, setError] = useState(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState<boolean>(true); // Loading state to manage the spinner
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchPosts() {
@@ -59,7 +74,7 @@ export default function CategoryPage({ params }) {
         const data = await response.json();
         setPosts(data);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || "An error occurred while fetching posts.");
       } finally {
         setLoading(false);
       }
@@ -77,16 +92,34 @@ export default function CategoryPage({ params }) {
   }
 
   if (error) {
-    return <p className="text-red-500 text-center">Error: {error}</p>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+        <h2 className="text-white  text-3xl text-center mb-4">{`Sorry, No Posts Available For " ${category} "`}</h2>
+        <div className="flex gap-4">
+          <Link
+            href="/"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Go Back to Home
+          </Link>
+          <Link
+            href="/category"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            All Categories
+          </Link>
+        </div>
+      </div>
+    );
   }
+
 
   return (
     <main className="relative min-h-screen bg-gray-900 text-white p-10">
-      <FloatingBubbles /> {/* Add floating bubbles */}
+      <FloatingBubbles />
       <h1 className="text-5xl font-bold mb-10 text-center text-gray-200 neon-glow">
         {`Posts in ${category.charAt(0).toUpperCase() + category.slice(1)}`}
       </h1>
-
 
       {/* Conditional Rendering based on the "Reading" category */}
       {category.toLowerCase() === "reading" ? (

@@ -89,13 +89,13 @@ const customParseOptions = (headingList) => ({
 
       const CopyableCode = () => {
         const [copied, setCopied] = useState(false);
-      
+
         const handleCopyCode = () => {
           navigator.clipboard.writeText(codeContent);
           setCopied(true);
           setTimeout(() => setCopied(false), 2000); // Reset "Copied!" message
         };
-      
+
         return (
           <div className="relative bg-[#282c34] p-5 rounded-lg mb-6 shadow-lg overflow-x-auto">
             <pre className="text-sm font-mono text-gray-200 leading-relaxed whitespace-pre-wrap">
@@ -103,8 +103,8 @@ const customParseOptions = (headingList) => ({
             </pre>
             <button
               className={`absolute top-1.5 right-2 text-xs px-2 py-2 rounded-md font-semibold shadow-sm transition-colors duration-200 ${copied
-                  ? "bg-blue-300 text-gray-800 hover:bg-blue-500"
-                  : "bg-gray-600 text-white hover:bg-gray-700"
+                ? "bg-blue-300 text-gray-800 hover:bg-blue-500"
+                : "bg-gray-600 text-white hover:bg-gray-700"
                 }`}
               onClick={handleCopyCode}
             >
@@ -113,8 +113,8 @@ const customParseOptions = (headingList) => ({
           </div>
         );
       };
-      
-      
+
+
 
       return <CopyableCode />;
     }
@@ -250,7 +250,30 @@ export default function BlogDetail({ params }) {
     );
   }
 
-  if (error) return <p className="text-red-500 text-center">Error: {error}</p>;
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+        <h1 className="text-white text-5xl text-center mb-4">OOPS!</h1>
+        <h2 className="text-gray-400  text-1xl text-center mb-4">{`The page you are looking for might have been removed, or is temporarily unavailable.
+
+`}</h2>
+        <div className="flex gap-4">
+          <Link
+            href="/"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Go Back to Home
+          </Link>
+          <Link
+            href="/category"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            All Categories
+          </Link>
+        </div>
+      </div>
+    );
+  }
   if (!post) return notFound();
   return (
     <div className="relative min-h-screen bg-gray-900 text-white p-10">
@@ -377,7 +400,12 @@ export default function BlogDetail({ params }) {
                       key={index}
                       className="bg-gray-700 text-gray-400 px-2 py-1 rounded-md text-sm hover:text-white transition-all duration-200"
                     >
-                      {tag}
+                       <Link
+      key={index}
+      href={`/tags/${tag.toLowerCase().replace(/\s+/g, "-")}`}
+      
+    >{tag}</Link>
+                      
                     </span>
                   ))
                 ) : (

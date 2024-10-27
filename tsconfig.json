@@ -28,7 +28,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-, "app/admin/edit-category/[id].js"  ],
+, "app/admin/edit-category/[id].js", "app/404/page.js", "app/components/error.js"  ],
   "exclude": [
     "node_modules"
   ]

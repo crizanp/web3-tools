@@ -43,7 +43,7 @@ export default function AdminDashboard() {
           },
         });
         if (!res.ok) {
-          throw new Error('Failed to fetch posts');
+          throw new Error('');
         }
         const data = await res.json();
         setPosts(Array.isArray(data) ? data : []);
