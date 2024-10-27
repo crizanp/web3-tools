@@ -7,15 +7,14 @@ import Trie from "./utils/Trie";
 import { wordMappings } from "./utils/wordMappings";
 import nepaliWordsData from "./utils/nepaliWords.json" assert { type: "json" };
 import Spinner from "../components/Spinner";
+import debounce from "lodash/debounce";
 
 interface NepaliWordsData {
   nepaliWords: string[];
 }
 
-// Extract Nepali words from the JSON file
 const nepaliWords = (nepaliWordsData as NepaliWordsData).nepaliWords;
 
-// Initialize the Trie with Nepali words using Romanized keys
 const nepaliDictionaryTrie = new Trie();
 Object.entries(wordMappings).forEach(([roman, nepali]) => {
   nepaliDictionaryTrie.insert(roman, nepali);
@@ -34,11 +33,10 @@ export default function TranslationPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    setLoading(true); // Set loading immediately upon mounting
+    setLoading(true);
     const fetchData = async () => {
       try {
-        // Simulate a delay for data processing or fetching
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (error) {
         console.error("Error during setup:", error);
       } finally {
@@ -48,7 +46,7 @@ export default function TranslationPage() {
     fetchData();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInputChange = debounce((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const input = e.target.value;
     setRomanInput(input);
 
@@ -66,7 +64,7 @@ export default function TranslationPage() {
     } else {
       setUnicodeOutput("");
     }
-  };
+  }, 300);
 
   const handleSuggestionClick = (suggestion: string) => {
     const words = romanInput.trim().split(" ");
@@ -86,7 +84,6 @@ export default function TranslationPage() {
 
   return (
     <div className="relative min-h-screen bg-gray-900 text-white flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      {/* Framer Motion Bubbles */}
       <motion.div
         className="absolute inset-0 overflow-hidden"
         initial={{ opacity: 0 }}
@@ -119,25 +116,45 @@ export default function TranslationPage() {
         ))}
       </motion.div>
 
-      <div className="relative bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 w-full max-w-2xl z-10">
+      <motion.div
+        className="relative bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 w-full max-w-2xl z-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 text-center">
           Romanized Nepali to Nepali Unicode
         </h1>
 
         {copyMessage && (
-          <div className="bg-green-600 text-white px-4 py-2 rounded-lg mb-4 text-center">
+          <motion.div
+            className="bg-green-600 text-white px-4 py-2 rounded-lg mb-4 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             {copyMessage}
-          </div>
+          </motion.div>
         )}
 
         {loading && (
-          <div className="flex justify-center">
+          <motion.div
+            className="flex justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
             <Spinner loading={loading} />
-          </div>
+          </motion.div>
         )}
 
         {!loading && suggestions.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-2">
+          <motion.div
+            className="flex flex-wrap gap-2 mb-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             {suggestions.map((suggestion, index) => (
               <div
                 key={index}
@@ -147,12 +164,17 @@ export default function TranslationPage() {
                 {suggestion}
               </div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {!loading && (
           <>
-            <div className="mb-6">
+            <motion.div
+              className="mb-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
               <label htmlFor="romanInput" className="block text-gray-400 font-bold mb-2">
                 Type Romanized Nepali
               </label>
@@ -165,9 +187,14 @@ export default function TranslationPage() {
                 onChange={handleInputChange}
                 rows={4}
               ></textarea>
-            </div>
+            </motion.div>
 
-            <div className="relative">
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
               <label htmlFor="unicodeOutput" className="block text-gray-400 font-bold mb-2">
                 Nepali Unicode (Output)
               </label>
@@ -184,10 +211,10 @@ export default function TranslationPage() {
               >
                 Copy
               </button>
-            </div>
+            </motion.div>
           </>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }
