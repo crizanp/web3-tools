@@ -9,7 +9,7 @@ export default function AddCategory() {
   const [description, setDescription] = useState("");
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // Get token from cookies
