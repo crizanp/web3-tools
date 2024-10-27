@@ -1,28 +1,26 @@
+// app/page.tsx or app/home/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
+import Head from "next/head";
 import Link from "next/link";
-import { posts } from "../lib/data"; // dummy data
-import { motion } from "framer-motion"; // For animations
-import { FaLinkedin } from "react-icons/fa"; // Import GitHub icon
-import PuffLoader from "react-spinners/PuffLoader"; // Import PuffLoader for the spinner
+import { posts } from "../lib/data";
+import { motion } from "framer-motion";
+import PuffLoader from "react-spinners/PuffLoader";
+import { FaLinkedin } from "react-icons/fa";
 
 // Helper function to get the two latest posts
-const getLatestPosts = () => {
-  return posts.slice(0, 2); // Assuming posts are sorted by latest first
-};
+const getLatestPosts = () => posts.slice(0, 2);
 
 export default function HomePage() {
   const [latestPosts, setLatestPosts] = useState([]);
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate data fetching with a timeout
     setTimeout(() => {
-      // Fetch latest posts and set them in state
       setLatestPosts(getLatestPosts());
-      setLoading(false); // Stop loading once data is fetched
-    }, 2000); // Simulating a delay of 2 seconds
+      setLoading(false);
+    }, 2000);
   }, []);
 
   if (loading) {
@@ -32,8 +30,39 @@ export default function HomePage() {
       </div>
     );
   }
+
+  const metaTitle = "Welcome to My Space - Portfolio, Blog, and Projects";
+  const metaDescription =
+    "Explore projects, blogs, and insights shared by a passionate developer. Discover tutorials, latest projects, and more.";
+  const metaUrl = "https://yourwebsite.com"; // Replace with your site URL
+  const metaImage = "https://yourwebsite.com/images/og-image.png"; // Replace with your OG image URL
+
   return (
-    <main className="p-2 pb-8 sm:p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen relative">
+    <>
+      <Head>
+        <title>{metaTitle}</title>
+        <meta name="description" content={metaDescription} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content={metaTitle} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={metaUrl} />
+        <meta property="og:image" content={metaImage} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={metaTitle} />
+        <meta name="twitter:description" content={metaDescription} />
+        <meta name="twitter:image" content={metaImage} />
+        <link rel="canonical" href={metaUrl} />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "My Portfolio",
+            url: metaUrl,
+          })}
+        </script>
+      </Head>
+      <main className="p-2 pb-8 sm:p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen relative">
       {/* Hero Section */}
       <section className="text-center py-20">
         <motion.h1
@@ -303,5 +332,6 @@ export default function HomePage() {
         />
       </div>
     </main>
+    </>
   );
 }
