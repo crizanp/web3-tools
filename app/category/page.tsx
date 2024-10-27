@@ -20,8 +20,8 @@ const engineeringNotes = {
 };
 
 const readingList = [
-  { title: "It Ends With Us", slug: "it-starts-with-us" },
-  { title: "It Starts With Us", slug: "it-starts-with-us" },
+  { title: "It Ends With Us", slug: "powerful-quotes-from-it-ends-with-us-by-colleen-hoover" },
+  { title: "It Starts With Us", slug: "60-powerful-quotes-from-it-starts-with-us-by-colleen-hoover" },
   { title: "I Too Had a Love Story", slug: "i-too-had-a-love-story" },
 ];
 

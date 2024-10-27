@@ -32,9 +32,9 @@ export default function Navbar() {
             <Link href="/category/reading" className="text-white hover:bg-gray-900 px-3 py-2 rounded-md text-sm font-medium">
               Readings
             </Link>
-            <Link href="/blog" className="text-white hover:bg-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+            {/* <Link href="/blog" className="text-white hover:bg-gray-900 px-3 py-2 rounded-md text-sm font-medium">
               Blog
-            </Link>
+            </Link> */}
             <Link href="/about" className="text-white hover:bg-gray-900 px-3 py-2 rounded-md text-sm font-medium">
               About
             </Link>
@@ -48,7 +48,7 @@ export default function Navbar() {
           <div className="flex items-center md:hidden">
             <button
               type="button"
-              className="text-white hover:bg-pink-400 focus:outline-none focus:bg-pink-400 p-2 rounded-md"
+              className="text-white hover:bg-gray-900 focus:outline-none focus:bg-gray-600 p-2 rounded-md"
               onClick={toggleMenu}
             >
               <svg
@@ -84,16 +84,19 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link href="/category" className="text-white hover:bg-pink-400 block px-3 py-2 rounded-md text-base font-medium">
+            <Link href="/category" className="text-white hover:bg-gray-900 block px-3 py-2 rounded-md text-base font-medium">
               Categories
             </Link>
-            <Link href="/blog" className="text-white hover:bg-pink-400 block px-3 py-2 rounded-md text-base font-medium">
-              Blog
+            <Link href="/category/telegram-api" className="text-white hover:bg-gray-900 block px-3 py-2 rounded-md text-base font-medium">
+              Telegram Bot
             </Link>
-            <Link href="/about" className="text-white hover:bg-pink-400 block px-3 py-2 rounded-md text-base font-medium">
+            <Link href="/category/reading" className="text-white hover:bg-gray-900 block px-3 py-2 rounded-md text-base font-medium">
+              Reading
+            </Link>
+            <Link href="/about" className="text-white hover:bg-gray-900 block px-3 py-2 rounded-md text-base font-medium">
               About
             </Link>
-            <Link href="/contact" className="text-white hover:bg-pink-400 block px-3 py-2 rounded-md text-base font-medium">
+            <Link href="/contact" className="text-white hover:bg-gray-900 block px-3 py-2 rounded-md text-base font-medium">
               Contact
             </Link>
           </div>

@@ -142,7 +142,7 @@ export default function HomePage() {
               for Facebook, Instagram, Tiktok, Telegram, Youtube, and many more.
             </p>
             <Link
-              href="/projects/project-1"
+              href="/"
               className="text-blue-500 hover:underline"
             >
               View Project
@@ -171,7 +171,7 @@ export default function HomePage() {
               and toys learning the science behind them.
             </p>
             <Link
-              href="/projects/project-2"
+              href="/"
               className="text-blue-500 hover:underline"
             >
               View Project
@@ -202,7 +202,7 @@ export default function HomePage() {
               relationships. A heart-wrenching story that will stay with you.
             </p>
             <Link
-              href="/blog/it-ends-with-us"
+              href="/blog/powerful-quotes-from-it-ends-with-us-by-colleen-hoover"
               className="text-blue-500 hover:underline"
             >
               Read More
@@ -261,13 +261,12 @@ export default function HomePage() {
             transition={{ duration: 0.7, delay: 0.5 }}
           >
             <h3 className="text-2xl font-bold text-white mb-3">
-              Book Title - Author Name
+              It Starts With Us - Colleen-Hoover 
             </h3>
             <p className="text-gray-400 mb-5">
-              Brief description about the book. An intriguing story with
-              memorable characters and captivating plotlines.
+            t Starts with Us by Colleen Hoover picks up where It Ends with Us leaves off, continuing the emotional journey of Lily Bloom as she navigates her life after making the difficult decision to end her relationship with Ryle.
             </p>
-            <Link href="/blog/book-title" className="text-blue-500 hover:underline">
+            <Link href="/blog/60-powerful-quotes-from-it-starts-with-us-by-colleen-hoover" className="text-blue-500 hover:underline">
               Read More
             </Link>
           </motion.div>

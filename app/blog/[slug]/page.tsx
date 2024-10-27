@@ -11,7 +11,7 @@ import "prismjs/components/prism-markup";
 import Link from "next/link";
 import PuffLoader from "react-spinners/PuffLoader"; // Import PuffLoader for the spinner
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // Import FontAwesomeIcon
-import { faLink, faTimes } from "@fortawesome/free-solid-svg-icons"; // Import link icon
+import { faLink, faTimes, faQuoteLeft, faCopy } from "@fortawesome/free-solid-svg-icons";
 
 // Floating bubbles background component (same as before)
 const FloatingBubbles = () => {
@@ -55,7 +55,40 @@ const getRawTextFromDomNode = (node) => {
   }
   return "";
 };
+// Component to handle copyable blockquotes
+const CopyableQuote = ({ quoteContent, children }) => {
+  const [copied, setCopied] = useState(false);
 
+  const handleCopyQuote = () => {
+    navigator.clipboard.writeText(quoteContent);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // Reset copied status after 2 seconds
+  };
+
+  return (
+    <div className="relative bg-gray-800 p-4 rounded-lg my-5 shadow-lg">
+  <FontAwesomeIcon
+    icon={faQuoteLeft}
+    className="text-blue-400 text-2xl absolute -top-3 left-3"
+  />
+  <blockquote className="text-lg italic text-gray-200 pl-10">
+    {children}
+  </blockquote>
+  <div className="flex justify-center mt-3">
+    <button
+      className={`text-center text-xs px-3 py-1 rounded-md font-semibold shadow-sm transition-colors duration-200 ${copied
+        ? "bg-blue-300 text-gray-800 hover:bg-blue-500"
+        : "bg-gray-700 text-white hover:bg-gray-600"
+        }`}
+      onClick={handleCopyQuote}
+    >
+      {copied ? "Copied!" : "Copy Quote"}
+    </button>
+  </div>
+</div>
+
+  );
+};
 // Custom function to handle HTML parsing, highlighting code blocks, and generating TOC
 const customParseOptions = (headingList) => ({
   replace: (domNode) => {
@@ -118,8 +151,18 @@ const customParseOptions = (headingList) => ({
 
       return <CopyableCode />;
     }
+    if (domNode.name === "blockquote") {
+      const quoteContent = getRawTextFromDomNode(domToReact(domNode.children));
+
+      return (
+        <CopyableQuote quoteContent={quoteContent}>
+          {domToReact(domNode.children)}
+        </CopyableQuote>
+      );
+    }
   },
 });
+
 
 export default function BlogDetail({ params }) {
   const { slug } = params;
@@ -400,12 +443,12 @@ export default function BlogDetail({ params }) {
                       key={index}
                       className="bg-gray-700 text-gray-400 px-2 py-1 rounded-md text-sm hover:text-white transition-all duration-200"
                     >
-                       <Link
-      key={index}
-      href={`/tags/${tag.toLowerCase().replace(/\s+/g, "-")}`}
-      
-    >{tag}</Link>
-                      
+                      <Link
+                        key={index}
+                        href={`/tags/${tag.toLowerCase().replace(/\s+/g, "-")}`}
+
+                      >{tag}</Link>
+
                     </span>
                   ))
                 ) : (
