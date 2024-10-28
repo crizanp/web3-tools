@@ -182,7 +182,7 @@ const BirthdayFireworks = () => {
   return (
     <>
       <h1 style={styles.h1}>Happy Birthday Sarjak! </h1>
-      <h4 style={styles.h4}>Do Well And Make Whole Nepal Proud! ❤️</h4>
+      <h4 style={styles.h4}>Wishing you a day full of smiles and a whole year filled with joy ❤️</h4>
       <canvas ref={canvasRef} style={styles.canvas} />
       <div style={styles.button} id="testbutton">Click Here</div>
     </>
@@ -197,7 +197,7 @@ const styles = {
     transform: 'translate(-50%, -30%)',
     color: '#fff',
     fontFamily: 'Source Sans Pro',
-    fontSize: '6vw', // Adjusts based on viewport width for responsiveness
+    fontSize: '7vw', // Adjusts based on viewport width for responsiveness
     fontWeight: 900,
     userSelect: 'none' as 'none',
     textAlign: 'center' as 'center',
@@ -209,7 +209,7 @@ const styles = {
     transform: 'translate(-50%, -30%)',
     color: '#fff',
     fontFamily: 'Source Sans Pro',
-    fontSize: '4vw', // Adjusts based on viewport width for responsiveness
+    fontSize: '5vw', // Adjusts based on viewport width for responsiveness
     fontWeight: 900,
     userSelect: 'none' as 'none',
     textAlign: 'center' as 'center',
