@@ -195,7 +195,7 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
                   onChange={(e) => setCustomQuote(e.target.value)}
                   className="text-center font-semibold w-full px-4 bg-transparent resize-none overflow-hidden outline-none"
                   style={{ fontSize: `${fontSize}px`, color: textColor, lineHeight: "1.2em" }}
-                  rows={3}
+                  rows={10}
                 />
                 <input
                   type="text"
@@ -227,13 +227,12 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
               <div>
                 <label className="block text-gray-700">Font Size</label>
                 <input
-                  type="number"
+                  type="range"
+                  min="12"
+                  max="72"
                   value={fontSize}
                   onChange={(e) => setFontSize(Number(e.target.value))}
-                  className="w-full p-2 border rounded text-black"
-                  min={12}
-                  max={72}
-                  step={1}
+                  className="w-full"
                 />
               </div>
               <div>
@@ -300,7 +299,7 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
           exit={{ opacity: 0 }}
         >
           <div className="bg-white p-4 rounded shadow-lg text-center">
-            <p className="text-black mb-4">Your quote card is ready! You are viewing from social media browser please open via direct browser.</p>
+            <p className="text-black mb-4">Your quote card is ready! Please long press the image to save it if you're using a social media browser.</p>
             <button
               onClick={handleCloseMessage}
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
