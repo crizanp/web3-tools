@@ -30,23 +30,34 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
   const [bgImage, setBgImage] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Update the customAuthor and customQuote when the props change
   useEffect(() => {
     setCustomAuthor(author);
     setCustomQuote(quote);
   }, [author, quote]);
 
   useEffect(() => {
-    // Dynamically adjust the font size based on the quote length to fit the text in the card
     const baseFontSize = 24;
     const adjustedFontSize = Math.max(12, baseFontSize - customQuote.length / 10);
     setFontSize(adjustedFontSize);
   }, [customQuote]);
 
+  useEffect(() => {
+    const userAgent = navigator.userAgent || navigator.vendor;
+    if (/FBAN|FBAV|Instagram/.test(userAgent)) {
+      alert("For a better experience and to download the quote card, please open this link in your default browser (e.g., Chrome or Safari).");
+    }
+  }, []);
+  
+
   const handleDownload = async () => {
     if (cardRef.current) {
-      const dataUrl = await toPng(cardRef.current);
-      saveAs(dataUrl, "quote-card.png");
+      try {
+        const dataUrl = await toPng(cardRef.current);
+        saveAs(dataUrl, "quote-card.png");
+      } catch (error) {
+        alert("Download failed. Please try opening this page in a different browser.");
+        console.error("Error downloading image:", error);
+      }
     }
   };
 
@@ -74,7 +85,6 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
       >
-        {/* Close Button */}
         <button
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
           onClick={onClose}
@@ -84,7 +94,6 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
         <h2 className="text-2xl font-bold mb-4 text-black text-center">Customize Your Quote Card</h2>
 
         <div className="text-black">
-          {/* Predefined Backgrounds */}
           <div className="flex gap-2 overflow-x-auto mb-4">
             {predefinedImages.map((image, index) => (
               <div
@@ -100,12 +109,11 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
             ))}
           </div>
 
-          {/* Quote Card Preview */}
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 bg-gray-700 p-0.5">
               <div
                 ref={cardRef}
-                className="w-full h-60 md:h-80 lg:h-full flex flex-col justify-center items-center p-6  shadow-lg overflow-hidden"
+                className="w-full h-60 md:h-80 lg:h-full flex flex-col justify-center items-center p-6 shadow-lg overflow-hidden"
                 style={{
                   backgroundColor: bgColor,
                   backgroundImage: bgImage ? `url(${bgImage})` : undefined,
@@ -126,7 +134,6 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
               </div>
             </div>
 
-            {/* Customization Controls */}
             <div className="flex-1 space-y-4">
               <div>
                 <label className="block text-gray-700">Author Name</label>
