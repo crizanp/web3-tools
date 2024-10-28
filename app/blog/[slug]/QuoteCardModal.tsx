@@ -102,7 +102,7 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
 
           {/* Quote Card Preview */}
           <div className="flex flex-col lg:flex-row gap-6">
-            <div className="flex-1 bg-gray-200 p-4 rounded-lg">
+            <div className="flex-1 bg-gray-700 p-0.5 rounded-lg">
               <div
                 ref={cardRef}
                 className="w-full h-60 md:h-80 lg:h-full flex flex-col justify-center items-center p-6 rounded-lg shadow-lg overflow-hidden"
