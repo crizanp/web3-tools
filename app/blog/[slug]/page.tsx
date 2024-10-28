@@ -12,6 +12,7 @@ import Link from "next/link";
 import PuffLoader from "react-spinners/PuffLoader"; // Import PuffLoader for the spinner
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // Import FontAwesomeIcon
 import { faLink, faTimes, faQuoteLeft, faCopy } from "@fortawesome/free-solid-svg-icons";
+import QuoteCardModal from "./QuoteCardModal";
 
 // Floating bubbles background component (same as before)
 const FloatingBubbles = () => {
@@ -56,7 +57,7 @@ const getRawTextFromDomNode = (node) => {
   return "";
 };
 // Component to handle copyable blockquotes
-const CopyableQuote = ({ quoteContent, children }) => {
+const CopyableQuote = ({ quoteContent, children, handleGenerateCard }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopyQuote = () => {
@@ -67,30 +68,37 @@ const CopyableQuote = ({ quoteContent, children }) => {
 
   return (
     <div className="relative bg-gray-800 p-4 rounded-lg my-5 shadow-lg">
-  <FontAwesomeIcon
-    icon={faQuoteLeft}
-    className="text-blue-400 text-2xl absolute -top-3 left-3"
-  />
-  <blockquote className="text-lg italic text-gray-200 pl-10">
-    {children}
-  </blockquote>
-  <div className="flex justify-center mt-3">
-    <button
-      className={`text-center text-xs px-3 py-1 rounded-md font-semibold shadow-sm transition-colors duration-200 ${copied
-        ? "bg-blue-300 text-gray-800 hover:bg-blue-500"
-        : "bg-gray-700 text-white hover:bg-gray-600"
-        }`}
-      onClick={handleCopyQuote}
-    >
-      {copied ? "Copied!" : "Copy Quote"}
-    </button>
-  </div>
-</div>
-
+      <FontAwesomeIcon
+        icon={faQuoteLeft}
+        className="text-blue-400 text-2xl absolute -top-3 left-3"
+      />
+      <blockquote className="text-lg italic text-gray-200 pl-10">
+        {children}
+      </blockquote>
+      <div className="flex justify-center mt-3">
+        <button
+          className={`text-center text-xs px-3 mr-1 py-2 rounded-md font-semibold shadow-sm transition-colors duration-200 ${copied
+            ? "bg-blue-300 text-gray-800 hover:bg-blue-500"
+            : "bg-gray-700 text-white hover:bg-gray-600"
+            }`}
+          onClick={handleCopyQuote}
+        >
+          {copied ? "Copied!" : "Copy Quote"}
+        </button>
+        <button
+          className="text-center text-xs px-3 py-2 ml-1 rounded-md font-semibold shadow-sm transition-colors duration-200  bg-blue-500 text-white  rounded"
+          onClick={() => handleGenerateCard(quoteContent, "Author Name")}
+        >
+          Make Card
+        </button>
+      </div>
+    </div>
   );
 };
+
 // Custom function to handle HTML parsing, highlighting code blocks, and generating TOC
-const customParseOptions = (headingList) => ({
+// Custom function to handle HTML parsing, highlighting code blocks, and generating TOC
+const customParseOptions = (headingList, handleGenerateCard) => ({
   replace: (domNode) => {
     // Only handle h1, h2, h3 tags for TOC
     if (domNode.name === "h1" || domNode.name === "h2" || domNode.name === "h3") {
@@ -147,15 +155,14 @@ const customParseOptions = (headingList) => ({
         );
       };
 
-
-
       return <CopyableCode />;
     }
+
     if (domNode.name === "blockquote") {
       const quoteContent = getRawTextFromDomNode(domToReact(domNode.children));
 
       return (
-        <CopyableQuote quoteContent={quoteContent}>
+        <CopyableQuote quoteContent={quoteContent} handleGenerateCard={handleGenerateCard}>
           {domToReact(domNode.children)}
         </CopyableQuote>
       );
@@ -164,8 +171,12 @@ const customParseOptions = (headingList) => ({
 });
 
 
+
 export default function BlogDetail({ params }) {
   const { slug } = params;
+  const [selectedQuote, setSelectedQuote] = useState("");
+  const [selectedAuthor, setSelectedAuthor] = useState("");
+
   const [post, setPost] = useState(null);
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
@@ -188,6 +199,12 @@ export default function BlogDetail({ params }) {
       console.error("Error fetching categories:", error);
     }
   }
+  const handleGenerateCard = (quote, author) => {
+    setSelectedQuote(quote);
+    setSelectedAuthor(author || "Cizan"); // Use "Cizan" if no author is provided
+    setIsModalOpen(true);
+  };
+  
 
   // Fetch tags dynamically from an API
   async function fetchTags() {
@@ -211,6 +228,7 @@ export default function BlogDetail({ params }) {
   }
 
   // Fetch post and similar posts based on category
+  // Inside BlogDetail component where you are generating the TOC
   useEffect(() => {
     async function fetchData() {
       try {
@@ -245,7 +263,7 @@ export default function BlogDetail({ params }) {
 
         // Generate Table of Contents (only for h1, h2, h3 tags)
         const headingList = [];
-        parse(currentPost.content, customParseOptions(headingList));
+        parse(currentPost.content, customParseOptions(headingList, handleGenerateCard));
         setTableOfContents(headingList);
       } catch (err) {
         setError(err.message);
@@ -256,6 +274,7 @@ export default function BlogDetail({ params }) {
 
     fetchData();
   }, [slug]);
+
   // Function to open the modal with the selected image
   const handleImageClick = (imageUrl) => {
     setSelectedImage(imageUrl);
@@ -382,7 +401,7 @@ export default function BlogDetail({ params }) {
 
           {/* Post Content */}
           <article className="prose lg:prose-xl dark:prose-invert mx-auto">
-            {parse(post.content, customParseOptions([]))}
+            {parse(post.content, customParseOptions([], handleGenerateCard))}
           </article>
 
           {/* Similar Posts */}
@@ -478,6 +497,12 @@ export default function BlogDetail({ params }) {
           </div>
         </aside>
       </div>
+      <QuoteCardModal
+  quote={selectedQuote}
+  author={selectedAuthor}
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+/>
     </div>
   );
 }
