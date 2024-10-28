@@ -11,13 +11,22 @@ export default function LayoutWrapper({ children }) {
   // Check if the current route is an admin route
   const isAdminRoute = pathname.startsWith("/admin");
 
+  // Check if the current route is the digitalgift page
+  const isDigitalGiftPage = pathname === "/digitalgift";
+
   return (
     <>
       {isAdminRoute ? (
         <AdminLayout> {/* Use AdminLayout for admin routes */}
           {children}
         </AdminLayout>
+      ) : isDigitalGiftPage ? (
+        // For digitalgift page, render only the children without Navbar and Footer
+        <>
+          {children}
+        </>
       ) : (
+        // For all other routes, render the Navbar, main content, and Footer
         <>
           <Navbar /> {/* Show Navbar for non-admin routes */}
           {children} {/* Render the main page content */}
