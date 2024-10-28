@@ -20,6 +20,32 @@ const predefinedImages = [
   "https://plus.unsplash.com/premium_photo-1673306778968-5aab577a7365?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
 ];
 
+const presetStyles = [
+  { name: "Classic", bgColor: "#ffffff", textColor: "#000000", font: "serif" },
+  { name: "Dark Mode", bgColor: "#333333", textColor: "#ffffff", font: "monospace" },
+  { name: "Vintage", bgColor: "#f5f5dc", textColor: "#5a5a5a", font: "cursive" },
+];
+
+const availableFonts = [
+  "Arial",
+  "Georgia",
+  "Helvetica",
+  "Times New Roman",
+  "Verdana",
+  "Courier New",
+  "Lucida Sans",
+  "Tahoma",
+  "Trebuchet MS",
+  "Comic Sans MS",
+];
+
+const presetColors = [
+  { name: "Blue & White", bgColor: "#0000ff", textColor: "#ffffff" },
+  { name: "Black & Yellow", bgColor: "#000000", textColor: "#ffff00" },
+  { name: "Red & White", bgColor: "#ff0000", textColor: "#ffffff" },
+  { name: "Green & Black", bgColor: "#00ff00", textColor: "#000000" },
+];
+
 export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, onClose }) {
   const [bgColor, setBgColor] = useState("#ffffff");
   const [textColor, setTextColor] = useState("#000000");
@@ -28,6 +54,8 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
   const [customAuthor, setCustomAuthor] = useState(author);
   const [customQuote, setCustomQuote] = useState(quote);
   const [bgImage, setBgImage] = useState<string | null>(null);
+  const [imageFilter, setImageFilter] = useState({ brightness: 100, blur: 0 });
+  const [showDownloadMessage, setShowDownloadMessage] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,22 +69,16 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
     setFontSize(adjustedFontSize);
   }, [customQuote]);
 
-  useEffect(() => {
-    const userAgent = navigator.userAgent || navigator.vendor;
-    if (/FBAN|FBAV|Instagram/.test(userAgent)) {
-      alert("For a better experience and to download the quote card, please open this link in your default browser (e.g., Chrome or Safari).");
-    }
-  }, []);
-  
-
   const handleDownload = async () => {
     if (cardRef.current) {
-      try {
-        const dataUrl = await toPng(cardRef.current);
-        saveAs(dataUrl, "quote-card.png");
-      } catch (error) {
-        alert("Download failed. Please try opening this page in a different browser.");
-        console.error("Error downloading image:", error);
+      const dataUrl = await toPng(cardRef.current);
+      saveAs(dataUrl, "quote-card.png");
+
+      const userAgent = navigator.userAgent || navigator.vendor;
+      const isSocialMediaBrowser = /FBAN|FBAV|Instagram/.test(userAgent);
+
+      if (isSocialMediaBrowser) {
+        setShowDownloadMessage(true);
       }
     }
   };
@@ -73,6 +95,21 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
 
   const handlePredefinedImageClick = (imageUrl: string) => {
     setBgImage(imageUrl);
+  };
+
+  const applyPresetStyle = (preset) => {
+    setBgColor(preset.bgColor);
+    setTextColor(preset.textColor);
+    setFont(preset.font);
+  };
+
+  const applyPresetColor = (color) => {
+    setBgColor(color.bgColor);
+    setTextColor(color.textColor);
+  };
+
+  const handleCloseMessage = () => {
+    setShowDownloadMessage(false);
   };
 
   if (!isOpen) return null;
@@ -94,21 +131,51 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
         <h2 className="text-2xl font-bold mb-4 text-black text-center">Customize Your Quote Card</h2>
 
         <div className="text-black">
+          {/* Preset Styles */}
+          <div className="flex gap-2 overflow-x-auto mb-4">
+            {presetStyles.map((preset, index) => (
+              <button
+                key={index}
+                className="bg-gray-200 px-3 py-1 rounded-lg shadow-sm text-sm"
+                onClick={() => applyPresetStyle(preset)}
+              >
+                {preset.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Preset Colors */}
+          <div className="flex gap-2 overflow-x-auto mb-4">
+            {presetColors.map((color, index) => (
+              <button
+                key={index}
+                className="px-3 py-1 rounded-lg shadow-sm text-sm"
+                style={{ backgroundColor: color.bgColor, color: color.textColor }}
+                onClick={() => applyPresetColor(color)}
+              >
+                {color.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Predefined Backgrounds */}
           <div className="flex gap-2 overflow-x-auto mb-4">
             {predefinedImages.map((image, index) => (
-              <div
+              <motion.div
                 key={index}
-                className="min-w-[60px] h-20 rounded-lg shadow-md cursor-pointer hover:opacity-80"
+                whileHover={{ scale: 1.1 }}
+                className="min-w-[60px] h-20 rounded-lg shadow-md cursor-pointer"
                 style={{
                   backgroundImage: `url(${image})`,
                   backgroundSize: "cover",
-                  backgroundPosition: "center"
+                  backgroundPosition: "center",
                 }}
                 onClick={() => handlePredefinedImageClick(image)}
               />
             ))}
           </div>
 
+          {/* Quote Card Preview */}
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 bg-gray-700 p-0.5">
               <div
@@ -118,31 +185,55 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
                   backgroundColor: bgColor,
                   backgroundImage: bgImage ? `url(${bgImage})` : undefined,
                   backgroundSize: "cover",
+                  filter: `brightness(${imageFilter.brightness}%) blur(${imageFilter.blur}px)`,
                   fontFamily: font,
                   color: textColor,
                 }}
               >
-                <p
-                  className="text-center font-semibold w-full px-4 bg-transparent resize-none overflow-hidden"
+                <textarea
+                  value={customQuote}
+                  onChange={(e) => setCustomQuote(e.target.value)}
+                  className="text-center font-semibold w-full px-4 bg-transparent resize-none overflow-hidden outline-none"
                   style={{ fontSize: `${fontSize}px`, color: textColor, lineHeight: "1.2em" }}
-                >
-                  {customQuote}
-                </p>
-                <p className="mt-4 text-center" style={{ fontSize: `${Math.max(12, fontSize - 4)}px` }}>
-                  — {customAuthor}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex-1 space-y-4">
-              <div>
-                <label className="block text-gray-700">Author Name</label>
+                  rows={3}
+                />
                 <input
                   type="text"
                   value={customAuthor}
                   onChange={(e) => setCustomAuthor(e.target.value)}
+                  className="mt-4 text-center bg-transparent resize-none outline-none"
+                  style={{ fontSize: `${Math.max(12, fontSize - 4)}px`, color: textColor }}
                   placeholder="Enter author name"
+                />
+              </div>
+            </div>
+
+            {/* Customization Controls */}
+            <div className="flex-1 space-y-4">
+              <div>
+                <label className="block text-gray-700">Font</label>
+                <select
+                  value={font}
+                  onChange={(e) => setFont(e.target.value)}
                   className="w-full p-2 border rounded text-black"
+                >
+                  {availableFonts.map((font) => (
+                    <option key={font} value={font}>
+                      {font}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-700">Font Size</label>
+                <input
+                  type="number"
+                  value={fontSize}
+                  onChange={(e) => setFontSize(Number(e.target.value))}
+                  className="w-full p-2 border rounded text-black"
+                  min={12}
+                  max={72}
+                  step={1}
                 />
               </div>
               <div>
@@ -164,33 +255,30 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
                 />
               </div>
               <div>
-                <label className="block text-gray-700">Font</label>
-                <select
-                  value={font}
-                  onChange={(e) => setFont(e.target.value)}
-                  className="w-full p-2 border rounded text-black"
-                >
-                  <option value="sans-serif">Sans-Serif</option>
-                  <option value="serif">Serif</option>
-                  <option value="monospace">Monospace</option>
-                  <option value="cursive">Cursive</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-700">Font Size</label>
+                <label className="block text-gray-700">Brightness</label>
                 <input
-                  type="number"
-                  value={fontSize}
-                  onChange={(e) => setFontSize(Number(e.target.value))}
-                  className="w-full p-2 border rounded text-black"
-                  min={12}
-                  max={72}
-                  step={1}
+                  type="range"
+                  min="50"
+                  max="150"
+                  value={imageFilter.brightness}
+                  onChange={(e) =>
+                    setImageFilter({ ...imageFilter, brightness: Number(e.target.value) })
+                  }
+                  className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-gray-700">Upload Background Image</label>
-                <input type="file" onChange={handleBgImageUpload} className="w-full" />
+                <label className="block text-gray-700">Blur</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={imageFilter.blur}
+                  onChange={(e) =>
+                    setImageFilter({ ...imageFilter, blur: Number(e.target.value) })
+                  }
+                  className="w-full"
+                />
               </div>
               <button
                 onClick={handleDownload}
@@ -202,6 +290,26 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
           </div>
         </div>
       </motion.div>
+
+      {/* Download Message Modal */}
+      {showDownloadMessage && (
+        <motion.div
+          className="fixed inset-0 z-60 bg-black bg-opacity-75 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="bg-white p-4 rounded shadow-lg text-center">
+            <p className="text-black mb-4">Your quote card is ready! Please long press the image to save it if you're using a social media browser.</p>
+            <button
+              onClick={handleCloseMessage}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Close
+            </button>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }
