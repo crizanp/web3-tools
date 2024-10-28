@@ -5,14 +5,9 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import PuffLoader from "react-spinners/PuffLoader";
 
-// Utility function to remove HTML tags from post content
-const stripHtmlTags = (html: string) => {
-  return html.replace(/<\/?[^>]+(>|$)/g, "");
-};
-
 // Component to render floating bubbles with low opacity and different colors
 const FloatingBubbles = () => {
-  const colors = ["#4C51BF", "#ED64A6", "#9F7AEA", "#F6AD55"]; // Array of different subtle colors
+  const colors = ["#4C51BF", "#ED64A6", "#9F7AEA", "#F6AD55"];
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {[...Array(10)].map((_, index) => (
@@ -25,7 +20,7 @@ const FloatingBubbles = () => {
             height: `${Math.random() * 80 + 20}px`,
             top: `${Math.random() * 100}%`,
             left: `${Math.random() * 100}%`,
-            opacity: 0.2, // Lower opacity for subtle effect
+            opacity: 0.2,
           }}
           initial={{ opacity: 0, scale: 0 }}
           animate={{
@@ -46,6 +41,7 @@ interface Post {
   slug: string;
   content: string;
   imageUrl?: string;
+  tags?: string[];
 }
 
 interface CategoryPageProps {
@@ -54,11 +50,18 @@ interface CategoryPageProps {
   };
 }
 
+// Utility function to remove HTML tags from post content
+const stripHtmlTags = (html: string) => {
+  return html.replace(/<\/?[^>]+(>|$)/g, "");
+};
+
 export default function CategoryPage({ params }: CategoryPageProps) {
-  const category = decodeURIComponent(params.category); // Decoding the category from params
+  const category = decodeURIComponent(params.category);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState<boolean>(true); // Loading state to manage the spinner
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchPosts() {
@@ -71,10 +74,25 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         if (!response.ok) {
           throw new Error("Failed to fetch posts");
         }
-        const data = await response.json();
+
+        // Cast the data to the expected type
+        const data: Post[] = await response.json();
         setPosts(data);
+
+        // Extract unique tags from posts
+        const allTags = data.reduce((acc: string[], post: Post) => {
+          if (post.tags) {
+            acc.push(...post.tags);
+          }
+          return acc;
+        }, []);
+        setTags([...new Set(allTags)]); // Remove duplicates
       } catch (err) {
-        setError(err.message || "An error occurred while fetching posts.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : "An error occurred while fetching posts."
+        );
       } finally {
         setLoading(false);
       }
@@ -82,6 +100,10 @@ export default function CategoryPage({ params }: CategoryPageProps) {
 
     fetchPosts();
   }, [category]);
+
+  const filteredPosts = selectedTag
+    ? posts.filter((post) => post.tags?.includes(selectedTag))
+    : posts;
 
   if (loading) {
     return (
@@ -94,7 +116,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-        <h2 className="text-white  text-3xl text-center mb-4">{`Sorry, No Posts Available For " ${category} "`}</h2>
+        <h2 className="text-white text-3xl text-center mb-4">{`Sorry, No Posts Available For " ${category} "`}</h2>
         <div className="flex gap-4">
           <Link
             href="/"
@@ -113,7 +135,6 @@ export default function CategoryPage({ params }: CategoryPageProps) {
     );
   }
 
-
   return (
     <main className="relative min-h-screen bg-gray-900 text-white px-4 py-8 sm:p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12">
       <FloatingBubbles />
@@ -121,70 +142,74 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         {`Posts in ${category.charAt(0).toUpperCase() + category.slice(1)}`}
       </h1>
 
-      {/* Conditional Rendering based on the "Reading" category */}
-      {category.toLowerCase() === "reading" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {posts.length > 0 ? (
-            posts.map((post) => (
-              <Link href={`/blog/${post.slug}`} key={post._id}>
-                <motion.div
-                  className="relative p-6 bg-cover bg-center bg-no-repeat rounded-lg shadow-lg hover:shadow-2xl transition hover:bg-gray-700"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
-                  style={{
-                    backgroundImage: `url(${post.imageUrl || "/path-to-default-image.jpg"})`, // Fallback to default image if missing
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    color: "#fff",
-                  }}
-                >
-                  <div className="bg-black bg-opacity-90 p-4 rounded-lg">
-                    <h2 className="text-3xl font-semibold mb-4 text-white neon-glow">
-                      {post.title}
-                    </h2>
-                    <p className="text-gray-300 mb-6">
-                      {stripHtmlTags(post.content).slice(0, 100)}...
-                    </p>
-                    <p className="text-blue-300 font-bold neon-glow">
-                      Read More
-                    </p>
-                  </div>
-                </motion.div>
-              </Link>
-            ))
-          ) : (
-            <p className="text-center col-span-2">No books found in this category.</p>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {posts.length > 0 ? (
-            posts.map((post) => (
-              <Link href={`/blog/${post.slug}`} key={post._id}>
-                <motion.div
-                  className="relative p-6 bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl hover:bg-gray-700 transition"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <h2 className="text-2xl font-semibold mb-4">{post.title}</h2>
-                  <p className="text-gray-400 mb-6">
-                    {stripHtmlTags(post.content).slice(0, 100)}...
-                  </p>
-                  <p className="text-blue-400 hover:text-blue-600 transition">
-                    Read More
-                  </p>
-                </motion.div>
-              </Link>
-            ))
-          ) : (
-            <p className="text-center col-span-2">No posts found in this category.</p>
-          )}
+      {/* Scrollable Tags for Filtering - Only show if category is "reading" */}
+      {category.toLowerCase() === "reading" && tags.length > 0 && (
+        <div className="flex space-x-4 overflow-x-auto py-4 mb-8">
+          <button
+            onClick={() => setSelectedTag(null)}
+            className={`px-4 py-2 rounded-full ${
+              !selectedTag ? "bg-blue-500 text-white" : "bg-gray-800 text-gray-300"
+            }`}
+          >
+            All
+          </button>
+          {tags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(tag)}
+              className={`px-4 py-2 rounded-full ${
+                selectedTag === tag
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-800 text-gray-300"
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
         </div>
       )}
+
+      {/* Display Posts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {filteredPosts.length > 0 ? (
+          filteredPosts.map((post) => (
+            <Link href={`/blog/${post.slug}`} key={post._id}>
+              <motion.div
+                className={`relative p-6 rounded-lg shadow-lg hover:shadow-2xl transition ${
+                  category.toLowerCase() === "reading"
+                    ? "bg-cover bg-center bg-no-repeat"
+                    : "bg-gray-800"
+                }`}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+                style={
+                  category.toLowerCase() === "reading"
+                    ? {
+                        backgroundImage: `url(${post.imageUrl || "/path-to-default-image.jpg"})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }
+                    : {}
+                }
+              >
+                <div className="bg-black bg-opacity-90 p-4 rounded-lg">
+                  <h2 className="text-3xl font-semibold mb-4 text-white neon-glow">
+                    {post.title}
+                  </h2>
+                  <p className="text-gray-300 mb-6">
+                    {stripHtmlTags(post.content).slice(0, 100)}...
+                  </p>
+                  <p className="text-blue-300 font-bold neon-glow">Read More</p>
+                </div>
+              </motion.div>
+            </Link>
+          ))
+        ) : (
+          <p className="text-center col-span-2">No posts found in this category.</p>
+        )}
+      </div>
     </main>
   );
 }

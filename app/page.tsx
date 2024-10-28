@@ -104,7 +104,7 @@ export default function HomePage() {
           transition={{ duration: 1, delay: 1.2 }}
         >
           <a
-            href="https://www.linkedin.com/in/yourusername" // Replace with your LinkedIn profile link
+            href="https://www.linkedin.com/in/srijanpokhrel" // Replace with your LinkedIn profile link
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center text-white font-semibold px-3 py-1 "
@@ -170,7 +170,7 @@ export default function HomePage() {
               for Facebook, Instagram, Tiktok, Telegram, Youtube, and many more.
             </p>
             <Link
-              href="/"
+              href="https://ndsnepal.com"
               className="text-blue-500 hover:underline"
             >
               View Project
@@ -199,7 +199,7 @@ export default function HomePage() {
               and toys learning the science behind them.
             </p>
             <Link
-              href="/"
+              href="https://creativescienceproject.com"
               className="text-blue-500 hover:underline"
             >
               View Project
