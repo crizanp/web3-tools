@@ -298,8 +298,8 @@ export default function QuoteCardModal({ quote = "", author = "Cizan", isOpen, o
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <div className="bg-white p-4 rounded shadow-lg text-center">
-            <p className="text-black mb-4">Your quote card is ready! Please long press the image to save it if you're using a social media browser.</p>
+          <div className="bg-white p-4 m-4 rounded shadow-lg text-center">
+            <p className="text-black mb-4">Your quote card is ready! Please open via direct browser to download quote card without interrupt .</p>
             <button
               onClick={handleCloseMessage}
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
