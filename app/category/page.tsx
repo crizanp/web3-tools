@@ -97,7 +97,7 @@ export default function CategoriesPage() {
                 <p className="text-lg mt-2">
                   Need a cutting-edge website or telegram bot for your business or services? We offer custom website development services tailored to your needs.
                 </p>
-                <Link href="/services" className="inline-block mt-4 bg-white text-black font-semibold py-2 px-4 rounded-full hover:bg-gray-200">
+                <Link href="https://ighdigital.ae/marketing-solutions/web-development/" className="inline-block mt-4 bg-white text-black font-semibold py-2 px-4 rounded-full hover:bg-gray-200">
                   Learn More
                 </Link>
               </div>
