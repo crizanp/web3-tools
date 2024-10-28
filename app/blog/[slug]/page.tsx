@@ -188,6 +188,8 @@ export default function BlogDetail({ params }) {
   const [tableOfContents, setTableOfContents] = useState([]); // TOC state
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const [selectedImage, setSelectedImage] = useState(""); // Selected image for modal
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
   // Fetch categories and tags dynamically from an API
   async function fetchCategories() {
     try {
@@ -204,8 +206,16 @@ export default function BlogDetail({ params }) {
     setSelectedAuthor(author || "Cizan"); // Use "Cizan" if no author is provided
     setIsModalOpen(true);
   };
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setIsImageModalOpen(true);
+  };
+  const closeImageModal = () => {
+    setIsImageModalOpen(false);
+  };
   
-
+  
+  
   // Fetch tags dynamically from an API
   async function fetchTags() {
     try {
@@ -276,10 +286,7 @@ export default function BlogDetail({ params }) {
   }, [slug]);
 
   // Function to open the modal with the selected image
-  const handleImageClick = (imageUrl) => {
-    setSelectedImage(imageUrl);
-    setIsModalOpen(true);
-  };
+ 
   // Function to close the modal
   const closeModal = () => {
     setIsModalOpen(false);
@@ -361,23 +368,23 @@ export default function BlogDetail({ params }) {
                 style={{ height: "auto" }}
                 onClick={() => handleImageClick(post.imageUrl)} // Open modal on click
               />
-              {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-                  <div className="relative">
-                    <img
-                      src={selectedImage}
-                      alt="Selected"
-                      className="max-w-full max-h-screen rounded-lg"
-                    />
-                    <button
-                      className="absolute top-3 right-3 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-600"
-                      onClick={closeModal}
-                    >
-                      <FontAwesomeIcon icon={faTimes} size="2x" />
-                    </button>
-                  </div>
-                </div>
-              )}
+              {isImageModalOpen && selectedImage && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+      <div className="relative">
+        <img
+          src={selectedImage}
+          alt="Selected"
+          className="max-w-full max-h-screen rounded-lg"
+        />
+        <button
+          className="absolute top-3 right-3 text-white bg-gray-900 p-2 rounded hover:bg-gray-800"
+          onClick={closeImageModal}
+        >
+          <FontAwesomeIcon icon={faTimes} size="2x" />
+        </button>
+      </div>
+    </div>
+  )}
 
             </div>
           )}
