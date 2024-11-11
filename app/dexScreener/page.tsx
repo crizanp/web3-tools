@@ -37,6 +37,7 @@ export default function DexCheckerPage() {
   const [pairData, setPairData] = useState<PairData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
 
   // Step 1: Fetch token details from /latest/dex/tokens/{tokenAddresses}
   const fetchTokenDetails = async () => {
