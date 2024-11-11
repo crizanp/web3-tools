@@ -38,7 +38,6 @@ export default function DexCheckerPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-
   // Step 1: Fetch token details from /latest/dex/tokens/{tokenAddresses}
   const fetchTokenDetails = async () => {
     try {
