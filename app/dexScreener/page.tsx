@@ -22,7 +22,9 @@ interface PairData {
   chainId: string;
   dexId: string;
   url: string;
-  baseToken: { name: string; symbol: string };
+  baseToken: {
+    address: any; name: string; symbol: string 
+};
   quoteToken: { name: string; symbol: string };
   priceUsd: string;
   liquidity: { usd: number };
