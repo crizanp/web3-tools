@@ -129,8 +129,6 @@ export default function DexCheckerPage() {
 
       const data = await response.json();
       setOrders(data || []);
-      
-      // Set `isPaid` to true if any order has "approved" status
       setIsPaid(data.some((order: Order) => order.status === "approved"));
     } catch (err) {
       setError("Failed to fetch payment orders for the token.");
@@ -157,6 +155,16 @@ export default function DexCheckerPage() {
     }
   };
 
+  const handlePopularSearchClick = (token: string) => {
+    setTokenAddressInput(token); // Only set the input value without triggering a search
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      checkDexPayment(); // Trigger search on Enter key press
+    }
+  };
+
   return (
     <main className="relative flex flex-col items-center justify-start min-h-screen bg-gradient-to-br from-purple-900 via-black to-blue-900 text-white p-4 pt-16">
       <div className="absolute inset-0 z-0 animate-pulse bg-gradient-to-r from-purple-700 to-blue-600 opacity-20" />
@@ -169,10 +177,7 @@ export default function DexCheckerPage() {
           {popularTokens.map((token) => (
             <button
               key={token}
-              onClick={() => {
-                setTokenAddressInput(token);
-                checkDexPayment();
-              }}
+              onClick={() => handlePopularSearchClick(token)}
               className="bg-gray-700 text-white px-2 py-1 rounded-md hover:bg-gray-600"
             >
               {token.slice(0, 4)}...{token.slice(-4)}
@@ -187,10 +192,11 @@ export default function DexCheckerPage() {
           placeholder="Enter token address"
           value={tokenAddressInput}
           onChange={(e) => setTokenAddressInput(e.target.value)}
+          onKeyPress={handleKeyPress} // Trigger search on Enter key press
           className="w-full px-4 py-2 pr-10 rounded-md text-gray-800 focus:outline-none"
         />
         <button
-          onClick={checkDexPayment}
+          onClick={checkDexPayment} // Trigger search on icon click
           className="absolute right-2 top-1/2 transform -translate-y-1/2"
         >
           <AiOutlineSearch className="text-black text-2xl" />
@@ -250,16 +256,17 @@ export default function DexCheckerPage() {
             <FaSync /> Refresh
           </button>
           {latestBoosted.map((token, index) => (
-            <div key={index} className="flex items-center gap-4 mt-4">
-              <img src={token.icon || "/default-icon.png"} alt="Token Icon" className="w-10 h-10" />
-              <div>
-                <p>{token.description}</p>
-                <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
-                  View
-                </a>
-              </div>
-            </div>
-          ))}
+  <div key={index} className="flex items-center gap-4 mt-4">
+    <img src={token.icon || ""} alt="Token Icon" className="w-10 h-10" />
+    <div className="truncate w-full">
+      <p>{token.description?.length > 50 ? `${token.description.slice(0, 50)}...` : token.description || token.tokenAddress }</p>
+      <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+        View
+      </a>
+    </div>
+  </div>
+))}
+
         </section>
 
         <section className="bg-gray-900 p-4 rounded-lg shadow-md w-full">
@@ -267,8 +274,8 @@ export default function DexCheckerPage() {
           {trendingTokens.map((token, index) => (
             <div key={index} className="flex items-center gap-4 mt-4">
               <img src={token.icon || "/default-icon.png"} alt="Token Icon" className="w-10 h-10" />
-              <div>
-                <p>{token.description}</p>
+              <div className="truncate w-full">
+                <p>{token.description.length > 50 ? `${token.description.slice(0, 50)}...` : token.description}</p>
                 <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
                   View
                 </a>
