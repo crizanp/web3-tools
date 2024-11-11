@@ -11,8 +11,9 @@ export default function LayoutWrapper({ children }) {
   // Check if the current route is an admin route
   const isAdminRoute = pathname.startsWith("/admin");
 
-  // Check if the current route is the digitalgift page
+  // Check if the current route is the digitalgift or dexScreener page
   const isDigitalGiftPage = pathname === "/digitalgift";
+  const isDexScreenerPage = pathname === "/dexScreener";
 
   return (
     <>
@@ -20,8 +21,8 @@ export default function LayoutWrapper({ children }) {
         <AdminLayout> {/* Use AdminLayout for admin routes */}
           {children}
         </AdminLayout>
-      ) : isDigitalGiftPage ? (
-        // For digitalgift page, render only the children without Navbar and Footer
+      ) : isDigitalGiftPage || isDexScreenerPage ? (
+        // For digitalgift and dexScreener pages, render only the children without Navbar and Footer
         <>
           {children}
         </>

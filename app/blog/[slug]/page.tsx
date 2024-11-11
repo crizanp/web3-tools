@@ -13,6 +13,7 @@ import PuffLoader from "react-spinners/PuffLoader"; // Import PuffLoader for the
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // Import FontAwesomeIcon
 import { faLink, faTimes, faQuoteLeft, faCopy } from "@fortawesome/free-solid-svg-icons";
 import QuoteCardModal from "./QuoteCardModal";
+import axios from "axios";
 
 // Floating bubbles background component (same as before)
 const FloatingBubbles = () => {
@@ -193,14 +194,13 @@ export default function BlogDetail({ params }) {
   // Fetch categories and tags dynamically from an API
   async function fetchCategories() {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
-      if (!res.ok) throw new Error("Failed to fetch categories");
-      const categoriesData = await res.json();
-      setCategories(categoriesData);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
+      setCategories(res.data);
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
   }
+
   const handleGenerateCard = (quote, author) => {
     setSelectedQuote(quote);
     setSelectedAuthor(author || "Cizan"); // Use "Cizan" if no author is provided
@@ -213,16 +213,14 @@ export default function BlogDetail({ params }) {
   const closeImageModal = () => {
     setIsImageModalOpen(false);
   };
-  
-  
-  
+
+
+
   // Fetch tags dynamically from an API
   async function fetchTags() {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts`);
-      if (!res.ok) throw new Error("Failed to fetch tags");
-
-      const posts = await res.json();
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/posts`);
+      const posts = res.data;
       const tagsSet = new Set();
 
       posts.forEach((post) => {
@@ -239,54 +237,38 @@ export default function BlogDetail({ params }) {
 
   // Fetch post and similar posts based on category
   // Inside BlogDetail component where you are generating the TOC
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true); // Show loader while fetching data
+  // Replace the API call inside the useEffect in BlogDetail component
+useEffect(() => {
+  async function fetchData() {
+    try {
+      setLoading(true);
 
-        // Fetch all posts
-        const postsResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/posts`
-        );
-        if (!postsResponse.ok) throw new Error("Failed to fetch posts");
-        const allPosts = await postsResponse.json();
+      // Fetch consolidated data from the new endpoint
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/${slug}`);
+      const { post, latestPosts, similarPosts, categories, tags } = response.data;
 
-        // Find the current post by slug
-        const currentPost = allPosts.find((p) => p.slug === slug);
-        if (!currentPost) throw new Error("Post not found");
-        setPost(currentPost);
+      setPost(post);
+      setLatestPosts(latestPosts);
+      setSimilarPosts(similarPosts);
+      setCategories(categories);
+      setTags(tags);
 
-        // Set latest posts (limit to 5)
-        setLatestPosts(allPosts.slice(0, 5));
-
-        // Filter similar posts by category (excluding the current post)
-        const similar = allPosts
-          .filter(
-            (p) =>
-              p.category === currentPost.category && p.slug !== currentPost.slug
-          )
-          .slice(0, 2); // Limit to 2 posts
-        setSimilarPosts(similar);
-
-        // Fetch categories and tags
-        await Promise.all([fetchCategories(), fetchTags()]);
-
-        // Generate Table of Contents (only for h1, h2, h3 tags)
-        const headingList = [];
-        parse(currentPost.content, customParseOptions(headingList, handleGenerateCard));
-        setTableOfContents(headingList);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false); // Hide loader after data is fetched
-      }
+      // Generate Table of Contents
+      const headingList = [];
+      parse(post.content, customParseOptions(headingList, handleGenerateCard));
+      setTableOfContents(headingList);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    fetchData();
-  }, [slug]);
+  fetchData();
+}, [slug]);
 
   // Function to open the modal with the selected image
- 
+
   // Function to close the modal
   const closeModal = () => {
     setIsModalOpen(false);
@@ -369,22 +351,22 @@ export default function BlogDetail({ params }) {
                 onClick={() => handleImageClick(post.imageUrl)} // Open modal on click
               />
               {isImageModalOpen && selectedImage && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-      <div className="relative">
-        <img
-          src={selectedImage}
-          alt="Selected"
-          className="max-w-full max-h-screen rounded-lg"
-        />
-        <button
-          className="absolute top-3 right-3 text-white bg-gray-900 p-2 rounded hover:bg-gray-800"
-          onClick={closeImageModal}
-        >
-          <FontAwesomeIcon icon={faTimes} size="2x" />
-        </button>
-      </div>
-    </div>
-  )}
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+                  <div className="relative">
+                    <img
+                      src={selectedImage}
+                      alt="Selected"
+                      className="max-w-full max-h-screen rounded-lg"
+                    />
+                    <button
+                      className="absolute top-3 right-3 text-white bg-gray-900 p-2 rounded hover:bg-gray-800"
+                      onClick={closeImageModal}
+                    >
+                      <FontAwesomeIcon icon={faTimes} size="2x" />
+                    </button>
+                  </div>
+                </div>
+              )}
 
             </div>
           )}
@@ -505,11 +487,11 @@ export default function BlogDetail({ params }) {
         </aside>
       </div>
       <QuoteCardModal
-  quote={selectedQuote}
-  author={selectedAuthor}
-  isOpen={isModalOpen}
-  onClose={() => setIsModalOpen(false)}
-/>
+        quote={selectedQuote}
+        author={selectedAuthor}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import PuffLoader from "react-spinners/PuffLoader";
+import axios from "axios"; // Import axios
 
 // Component to render floating bubbles with low opacity and different colors
 const FloatingBubbles = () => {
@@ -68,15 +69,14 @@ export default function CategoryPage({ params }: CategoryPageProps) {
       try {
         setLoading(true);
         const encodedCategory = encodeURIComponent(category);
-        const response = await fetch(
+
+        // Use axios to fetch data
+        const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/posts/category/${encodedCategory}`
         );
-        if (!response.ok) {
-          throw new Error("Failed to fetch posts");
-        }
 
         // Cast the data to the expected type
-        const data: Post[] = await response.json();
+        const data: Post[] = response.data;
         setPosts(data);
 
         // Extract unique tags from posts

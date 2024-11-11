@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import axios from "axios"; // Import axios
 import Spinner from "../components/Spinner"; // Import Spinner component
 
 const engineeringNotes = {
@@ -35,15 +36,12 @@ export default function CategoriesPage() {
     async function fetchData() {
       try {
         const [categoriesRes, postsRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/categories`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/posts`),
         ]);
 
-        if (!categoriesRes.ok) throw new Error("Failed to fetch categories");
-        if (!postsRes.ok) throw new Error("Failed to fetch posts");
-
-        const categoriesData = await categoriesRes.json();
-        const postsData = await postsRes.json();
+        const categoriesData = categoriesRes.data;
+        const postsData = postsRes.data;
 
         const tagsSet = new Set();
         postsData.forEach((post) => {
@@ -152,11 +150,11 @@ export default function CategoriesPage() {
                         className="bg-blue-600 text-gray-300 py-2 px-4 rounded-full cursor-pointer hover:bg-blue-700 hover:text-white transition duration-300"
                         whileHover={{ scale: 1.05 }}
                       >
-                         <Link
-      key={tagIndex}
-      href={`/tags/${tag.toLowerCase().replace(/\s+/g, "-")}`}
-      className="bg-blue-600 text-gray-300 py-2 px-4 rounded-full hover:bg-blue-700 hover:text-white transition duration-300"
-    >
+                        <Link
+                          key={tagIndex}
+                          href={`/tags/${tag.toLowerCase().replace(/\s+/g, "-")}`}
+                          className="bg-blue-600 text-gray-300 py-2 px-4 rounded-full hover:bg-blue-700 hover:text-white transition duration-300"
+                        >
                           {tag}
                         </Link>
                       </motion.div>
