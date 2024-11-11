@@ -23,11 +23,13 @@ interface PairData {
   dexId: string;
   url: string;
   baseToken: {
-    address: any; name: string; symbol: string 
-};
+    address: any;
+    name: string;
+    symbol: string;
+  };
   quoteToken: { name: string; symbol: string };
   priceUsd: string;
-  liquidity: { usd: number };
+  liquidity: { usd?: number };
 }
 
 export default function DexCheckerPage() {
@@ -37,8 +39,7 @@ export default function DexCheckerPage() {
   const [pairData, setPairData] = useState<PairData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Step 1: Fetch token details from /latest/dex/tokens/{tokenAddresses}
+
   const fetchTokenDetails = async () => {
     try {
       const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(tokenAddressInput)}`);
@@ -59,8 +60,6 @@ export default function DexCheckerPage() {
       });
 
       setPairData([matchedPair]);
-
-      // Return chainId to use it in the next step
       return matchedPair.chainId;
     } catch (err) {
       setError("Failed to fetch token details.");
@@ -69,7 +68,6 @@ export default function DexCheckerPage() {
     }
   };
 
-  // Step 2: Fetch payment information (boost status) from /orders/v1/{chainId}/{tokenAddress}
   const fetchOrderStatus = async (chainId: string) => {
     try {
       const response = await fetch(
@@ -84,7 +82,6 @@ export default function DexCheckerPage() {
     }
   };
 
-  // Main function to check DEX payment status and boosts
   const checkDexPayment = async () => {
     setLoading(true);
     setError(null);
@@ -103,13 +100,11 @@ export default function DexCheckerPage() {
       setLoading(false);
     }
   };
-  
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-4">
       <h1 className="text-4xl font-bold mb-8">DEXScreener Payment Checker</h1>
 
-      {/* Input Field */}
       <div className="mb-8 flex items-center gap-2">
         <input
           type="text"
@@ -126,21 +121,18 @@ export default function DexCheckerPage() {
         </button>
       </div>
 
-      {/* Loading Spinner */}
       {loading && (
         <div className="flex items-center justify-center">
           <PuffLoader color="#36D7B7" size={60} />
         </div>
       )}
 
-      {/* Error Message */}
       {error && (
         <div className="text-red-500 text-center mb-4">
           <p>{error}</p>
         </div>
       )}
 
-      {/* Display Token Information */}
       {tokenData && (
         <section className="p-4 bg-gray-800 rounded-lg shadow-md text-center mb-8">
           {tokenData.icon && <img src={tokenData.icon} alt="Token Icon" className="w-16 h-16 mx-auto mb-4" />}
@@ -157,7 +149,6 @@ export default function DexCheckerPage() {
         </section>
       )}
 
-      {/* Orders Display */}
       {orders.length > 0 && (
         <motion.div
           className="p-4 bg-gray-800 rounded-lg shadow-md text-center mb-8"
@@ -182,7 +173,6 @@ export default function DexCheckerPage() {
         </motion.div>
       )}
 
-      {/* Display Pair Data */}
       {pairData.length > 0 && (
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-5xl">
           {pairData.map((pair, index) => (
@@ -195,7 +185,12 @@ export default function DexCheckerPage() {
                 {pair.baseToken.symbol}/{pair.quoteToken.symbol}
               </h3>
               <p className="text-gray-300">Price: ${parseFloat(pair.priceUsd).toFixed(4)}</p>
-              <p className="text-gray-300">Liquidity: ${pair.liquidity.usd.toLocaleString()}</p>
+              <p className="text-gray-300">
+                Liquidity: $
+                {pair.liquidity && pair.liquidity.usd
+                  ? pair.liquidity.usd.toLocaleString()
+                  : "N/A"}
+              </p>
               <a
                 href={pair.url}
                 target="_blank"
