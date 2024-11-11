@@ -106,7 +106,7 @@ export default function DexCheckerPage() {
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-4">
-      <h1 className="text-4xl font-bold mb-8">DEX Payment Checker</h1>
+      <h1 className="text-4xl font-bold mb-8">DEXScreener Payment Checker</h1>
 
       {/* Input Field */}
       <div className="mb-8 flex items-center gap-2">
