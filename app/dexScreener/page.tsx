@@ -103,6 +103,7 @@ export default function DexCheckerPage() {
       setLoading(false);
     }
   };
+  
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-4">
