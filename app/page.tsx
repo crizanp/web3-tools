@@ -1,337 +1,384 @@
-// app/page.tsx or app/home/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import Head from "next/head";
-import Link from "next/link";
-import { posts } from "../lib/data";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import PuffLoader from "react-spinners/PuffLoader";
-import { FaLinkedin } from "react-icons/fa";
+import { AiOutlineSearch, AiOutlineWarning, AiOutlineSmile, AiOutlineFrown } from "react-icons/ai";
+import { FaSync } from "react-icons/fa";
+import Advertisement from "./components/Advertisement";
+import Footer from "./components/Footer_IGH";
 
-// Helper function to get the two latest posts
-const getLatestPosts = () => posts.slice(0, 2);
+interface TokenData {
+  chainId: string;
+  tokenAddress: string;
+  description?: string;
+  url?: string;
+  icon?: string;
+  symbol?: string;
+}
 
-export default function HomePage() {
-  const [latestPosts, setLatestPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+interface Order {
+  type: string;
+  status: string;
+  paymentTimestamp: number;
+}
+
+interface PairData {
+  chainId: string;
+  dexId: string;
+  url: string;
+  baseToken: {
+    address: any;
+    name: string;
+    symbol: string;
+  };
+  quoteToken: { name: string; symbol: string };
+  priceUsd: string;
+  liquidity: { usd: number };
+  info?: {
+    imageUrl?: string;
+  };
+  txns: {
+    m5: { buys: number; sells: number };
+    h1: { buys: number; sells: number };
+    h24: { buys: number; sells: number };
+  };
+  priceChange: {
+    m5: number;
+    h1: number;
+    h24: number;
+  };
+}
+
+interface BoostedToken {
+  url: string;
+  chainId: string;
+  tokenAddress: string;
+  icon: string;
+  description: string;
+  name: string;
+  links: { label: string; url: string }[];
+}
+
+const popularTokens = [
+  "GJAFwWjJ3vnTsrQVabjBVK2TYB1YtRCQXRDfDgUnpump",
+  "ECZxKmKGEkyKhYUau7WkUE1L9Jp2yLebwX4SnKc1pump",
+  "9yNEs1Z96EF4Y5NTufU9FyRAz6jbGzZLBfRQCtssPtAQ",
+  "3KAeVfDbU6tZxSD2kqz3Pz6B6f42CW3FdA89GUZ8fw23",
+  "72XUGRRzuSoLRch3QPpSPHkuZ8F58rvtCNF4QSosLb4H",
+];
+
+export default function DexCheckerPage() {
+  const [tokenAddressInput, setTokenAddressInput] = useState("");
+  const [tokenData, setTokenData] = useState<TokenData | null>(null);
+  const [pairData, setPairData] = useState<PairData[]>([]);
+  const [latestBoosted, setLatestBoosted] = useState<BoostedToken[]>([]);
+  const [trendingTokens, setTrendingTokens] = useState<BoostedToken[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPaid, setIsPaid] = useState(false);
+  const [noTokenInfo, setNoTokenInfo] = useState(false);
+  const [iconError, setIconError] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const outputRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setTimeout(() => {
-      setLatestPosts(getLatestPosts());
-      setLoading(false);
-    }, 2000);
+    fetchTrendingTokens();
+    fetchLatestBoostedTokens();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <PuffLoader color="#36D7B7" size={150} />
-      </div>
-    );
-  }
+  const fetchTrendingTokens = async () => {
+    try {
+      const response = await fetch("https://api.dexscreener.com/token-boosts/top/v1");
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setTrendingTokens(data.slice(0, 5));
+      } else {
+        setError("Unexpected data format for trending tokens.");
+      }
+    } catch {
+      setError("Failed to load trending tokens.");
+    }
+  };
 
-  const metaTitle = "Welcome to My Space - Portfolio, Blog, and Projects";
-  const metaDescription =
-    "Explore projects, blogs, and insights shared by a passionate developer. Discover tutorials, latest projects, and more.";
-  const metaUrl = "https://yourwebsite.com"; // Replace with your site URL
-  const metaImage = "https://yourwebsite.com/images/og-image.png"; // Replace with your OG image URL
+  const fetchLatestBoostedTokens = async () => {
+    setIsRefreshing(true);
+    try {
+      const response = await fetch("https://api.dexscreener.com/token-boosts/latest/v1");
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setLatestBoosted(data.slice(0, 5));
+      } else {
+        setError("Unexpected data format for boosted tokens.");
+      }
+    } catch {
+      setError("Failed to load boosted tokens.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const fetchTokenDetails = async (tokenAddress: string) => {
+    try {
+      setNoTokenInfo(false);
+      setIconError(false);
+
+      const response = await fetch(
+        `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(tokenAddress)}`
+      );
+      const data = await response.json();
+
+      if (data && Array.isArray(data.pairs)) {
+        const matchedPair = data.pairs.find(
+          (pair: PairData) => pair.baseToken.address.toLowerCase() === tokenAddress.toLowerCase()
+        );
+
+        if (matchedPair) {
+          setTokenData({
+            chainId: matchedPair.chainId,
+            tokenAddress,
+            description: `Pair on ${matchedPair.dexId}`,
+            url: matchedPair.url,
+            icon: matchedPair.info?.imageUrl || "",
+            symbol: matchedPair.baseToken.symbol,
+          });
+          setPairData([matchedPair]);
+          return matchedPair.chainId;
+        }
+      }
+
+      const inferredChainId = inferChainIdFromAddress(tokenAddress);
+      if (inferredChainId) {
+        setTokenData({
+          chainId: inferredChainId,
+          tokenAddress,
+          description: "Inferred Chain",
+          url: "",
+          icon: "",
+        });
+        return inferredChainId;
+      }
+
+      setNoTokenInfo(true);
+      throw new Error("Token not found. Check the address and try again.");
+    } catch (err) {
+      setError("Failed to fetch token details.");
+      setLoading(false);
+      return null;
+    }
+  };
+
+  const inferChainIdFromAddress = (address: string) => {
+    if (address.startsWith("0x")) {
+      return "ethereum";
+    } else if (address.match(/^[1-9A-HJ-NP-Za-km-z]+$/)) {
+      return "solana";
+    } else if (address.startsWith("bnb")) {
+      return "bsc";
+    }
+    return null;
+  };
+
+  const fetchOrderStatus = async (tokenAddress: string, chainId: string) => {
+    try {
+      const endpoint =
+        chainId === "solana"
+          ? `https://api.dexscreener.com/orders/v1/solana/${encodeURIComponent(tokenAddress)}`
+          : `https://api.dexscreener.com/orders/v1/${chainId}/${encodeURIComponent(tokenAddress)}`;
+
+      const response = await fetch(endpoint);
+      if (!response.ok) throw new Error("Failed to check orders for the token");
+
+      const data = await response.json();
+      setIsPaid(data.some((order: Order) => order.status === "approved"));
+    } catch (err) {
+      setError("Failed to fetch payment orders for the token.");
+    }
+  };
+
+  const checkDexPayment = async (tokenAddress: string) => {
+    setLoading(true);
+    setError(null);
+    setPairData([]);
+    setTokenData(null);
+    setIsPaid(false);
+    setNoTokenInfo(false);
+    setIconError(false);
+    setHasSearched(true);
+
+    try {
+      const chainId = await fetchTokenDetails(tokenAddress);
+      if (chainId) {
+        await fetchOrderStatus(tokenAddress, chainId);
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+      if (outputRef.current) {
+        outputRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
+  const handlePopularSearchClick = (token: string) => {
+    setTokenAddressInput(token);
+    checkDexPayment(token);
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      checkDexPayment(tokenAddressInput);
+    }
+  };
 
   return (
-    <>
-      <Head>
-        <title>{metaTitle}</title>
-        <meta name="description" content={metaDescription} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content={metaTitle} />
-        <meta property="og:description" content={metaDescription} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={metaUrl} />
-        <meta property="og:image" content={metaImage} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={metaTitle} />
-        <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image" content={metaImage} />
-        <link rel="canonical" href={metaUrl} />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            name: "My Portfolio",
-            url: metaUrl,
-          })}
-        </script>
-      </Head>
-      <main className="p-2 pb-8 sm:p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12 bg-gradient-to-br from-black via-gray-800 to-black min-h-screen relative">
-      {/* Hero Section */}
-      <section className="text-center py-20">
-        <motion.h1
-          className="text-6xl font-bold text-white mb-5"
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-        >
-          Welcome to My Space
-        </motion.h1>
-        <motion.p
-          className="text-xl text-gray-400"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5 }}
-        >
-          A space for projects, blogs, and ideas, where I share code, creativity,
-          and personal insights.
-        </motion.p>
-        <motion.div
-          className="mt-10"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 1 }}
-        >
-          <Link
-            href="/about"
-            className="text-white font-semibold px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg"
-          >
-            Learn More About Me
-          </Link>
-        </motion.div>
-
-        {/* LinkedIn Connect Button */}
-        <motion.div
-          className="mt-8"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 1.2 }}
-        >
-          <a
-            href="https://www.linkedin.com/in/srijanpokhrel" // Replace with your LinkedIn profile link
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center text-white font-semibold px-3 py-1 "
-          >
-            <FaLinkedin className="mr-2 h-6 w-6" />
-            Connect me on LinkedIn
-          </a>
-        </motion.div>
-      </section>
-
-      {/* Latest Posts Section */}
-      <section className="mt-20">
-        <h2 className="text-4xl text-white font-bold mb-10 text-center">
-          Latest Blog Posts
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          {latestPosts.map((post) => (
-            <motion.div
-              key={post.id}
-              className="bg-gray-900 p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300"
-              whileHover={{ scale: 1.05 }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-            >
-              <h3 className="text-2xl font-bold text-white mb-3">
-                {post.title}
-              </h3>
-              <p className="text-gray-400 mb-5">{post.content.slice(0, 100)}...</p>
-              <Link
-                href={`/blog/${post.slug}`}
-                className="text-blue-500 hover:underline"
-              >
-                Learn More
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* My Latest Work Section */}
-      <section className="mt-20">
-        <h2 className="text-4xl text-white font-bold mb-10 text-center">
-          My Latest Work
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
-          {/* Project 1 */}
-          <motion.div
-            className="bg-gray-900 p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300"
-            whileHover={{ scale: 1.05 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-          >
-            <img
-              src="/images/1.png"
-              alt="Project 1"
-              className="rounded mb-5"
-            />
-            <h3 className="text-2xl font-bold text-white mb-3">NDSNEPAL</h3>
-            <p className="text-gray-400 mb-5">
-              NDSNEPAL is a social media marketing company that provides services
-              for Facebook, Instagram, Tiktok, Telegram, Youtube, and many more.
-            </p>
-            <Link
-              href="https://ndsnepal.com"
-              className="text-blue-500 hover:underline"
-            >
-              View Project
-            </Link>
-          </motion.div>
-
-          {/* Project 2 */}
-          <motion.div
-            className="bg-gray-900 p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300"
-            whileHover={{ scale: 1.05 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-          >
-            <img
-              src="/images/2.png" // Replace with your actual image paths
-              alt="Project 2"
-              className="rounded mb-5"
-            />
-            <h3 className="text-2xl font-bold text-white mb-3">
-              Creative Science Project
-            </h3>
-            <p className="text-gray-400 mb-5">
-              At Creative Science Project we guide and help you understand the
-              science practical lessons from junior classes. DIY your projects
-              and toys learning the science behind them.
-            </p>
-            <Link
-              href="https://creativescienceproject.com"
-              className="text-blue-500 hover:underline"
-            >
-              View Project
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Latest Reading Post Section - Static */}
-      <section className="mt-20">
-        <h2 className="text-4xl text-white font-bold mb-10 text-center">
-          My Latest Reading
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          {/* Book 1 */}
-          <motion.div
-            className="bg-gray-900 p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300"
-            whileHover={{ scale: 1.05 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-          >
-            <h3 className="text-2xl font-bold text-white mb-3">
-              It Ends With Us - Colleen Hoover
-            </h3>
-            <p className="text-gray-400 mb-5">
-              A poignant tale of love, resilience, and the complexities of
-              relationships. A heart-wrenching story that will stay with you.
-            </p>
-            <Link
-              href="/blog/powerful-quotes-from-it-ends-with-us-by-colleen-hoover"
-              className="text-blue-500 hover:underline"
-            >
-              Read More
-            </Link>
-          </motion.div>
-
-          {/* Book 2 */}
-          <motion.div
-            className="bg-gray-900 p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300"
-            whileHover={{ scale: 1.05 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-          >
-            <h3 className="text-2xl font-bold text-white mb-3">
-              I Too Had a Love Story - Ravinder Singh
-            </h3>
-            <p className="text-gray-400 mb-5">
-              A touching love story that captures the innocence of first love
-              and the pain of loss, leaving readers deeply moved.
-            </p>
-            <Link
-              href="/blog/i-too-had-a-love-story"
-              className="text-blue-500 hover:underline"
-            >
-              Read More
-            </Link>
-          </motion.div>
-
-          {/* Book 3 */}
-          <motion.div
-            className="bg-gray-900 p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300"
-            whileHover={{ scale: 1.05 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-          >
-            <h3 className="text-2xl font-bold text-white mb-3">
-              Verity - Colleen Hoover
-            </h3>
-            <p className="text-gray-400 mb-5">
-              A thrilling psychological rollercoaster that explores the blurred
-              lines between truth and fiction.
-            </p>
-            <Link href="/blog/verity" className="text-blue-500 hover:underline">
-              Read More
-            </Link>
-          </motion.div>
-
-          {/* Book 4 */}
-          <motion.div
-            className="bg-gray-900 p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300"
-            whileHover={{ scale: 1.05 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.5 }}
-          >
-            <h3 className="text-2xl font-bold text-white mb-3">
-              It Starts With Us - Colleen-Hoover 
-            </h3>
-            <p className="text-gray-400 mb-5">
-            t Starts with Us by Colleen Hoover picks up where It Ends with Us leaves off, continuing the emotional journey of Lily Bloom as she navigates her life after making the difficult decision to end her relationship with Ryle.
-            </p>
-            <Link href="/blog/60-powerful-quotes-from-it-starts-with-us-by-colleen-hoover" className="text-blue-500 hover:underline">
-              Read More
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Animated Game-Like Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <motion.div
-          className="w-32 h-32 bg-blue-600 rounded-full opacity-20 absolute top-10 left-10"
-          animate={{ y: [0, -20, 20], rotate: [0, 360] }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="w-24 h-24 bg-green-600 rounded-full opacity-20 absolute bottom-20 right-20"
-          animate={{ y: [0, 20, -20], rotate: [360, 0] }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="w-40 h-40 bg-red-600 rounded-full opacity-20 absolute top-1/2 left-1/3"
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{
-            duration: 7,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
+    <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-800 to-gray-900 text-white p-6 space-y-8">
+      <div className="w-full md:w-4/4 lg:w-3/4">
+        <Advertisement />
       </div>
+
+      <div className="w-full md:w-4/4 lg:w-3/4 p-4 md:p-6 bg-gray-700 rounded-lg shadow-lg">
+        <h1 className="text-2xl md:text-4xl font-bold text-center mb-4 md:mb-6">DEX Screener Paid Checker</h1>
+
+        <div className="flex flex-col items-center bg-gray-800 p-3 md:p-4 rounded-lg space-y-3">
+          {/* Search Bar with responsive padding and size */}
+          <div className="flex items-center bg-gray-700 rounded-full px-3 py-2 md:px-4 md:py-3 w-full">
+            <input
+              type="text"
+              placeholder="Enter token address"
+              value={tokenAddressInput}
+              onChange={(e) => setTokenAddressInput(e.target.value)}
+              onKeyPress={(event) => event.key === "Enter" && checkDexPayment(tokenAddressInput)}
+              className="bg-transparent outline-none text-white placeholder-gray-300 flex-grow text-sm md:text-lg"
+            />
+            <button onClick={() => checkDexPayment(tokenAddressInput)}>
+              <AiOutlineSearch className="text-2xl md:text-3xl text-white" />
+            </button>
+          </div>
+
+          {/* Centered Popular Searches */}
+          <div className="text-center text-gray-400 text-sm md:text-base mt-2 w-full px-2">
+  <p>Popular Searches:</p>
+  <div className="flex justify-start md:justify-center overflow-x-auto no-scrollbar space-x-2 mt-2 w-full px-2">
+    {popularTokens.map((token) => (
+      <button
+        key={token}
+        onClick={() => handlePopularSearchClick(token)}
+        className="bg-gray-600 text-gray-300 px-2 py-1 md:px-3 md:py-2 rounded-md hover:bg-gray-500 flex-shrink-0 whitespace-nowrap"
+      >
+        {token.slice(0, 4)}...{token.slice(-4)}
+      </button>
+    ))}
+  </div>
+</div>
+
+        </div>
+      </div>
+
+      {loading && (
+        <div className="flex items-center justify-center">
+          <PuffLoader color="#36D7B7" size={60} />
+        </div>
+      )}
+
+      <div ref={outputRef}>
+        {!loading && hasSearched && (
+          <motion.div
+            className={`p-6 rounded-lg text-center w-full max-w-md border-4 ${
+              isPaid ? "border-green-500" : "border-red-500"
+            }`}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <h2 className="text-2xl font-bold mb-4">
+              {isPaid ? "Yes, the DEX is paid!" : "No, the DEX has not paid."}
+            </h2>
+            {tokenData?.icon ? (
+              <img
+                src={tokenData.icon}
+                alt="Token Icon"
+                className="w-12 h-12 mx-auto"
+                onError={() => setIconError(true)}
+              />
+            ) : isPaid ? (
+              <AiOutlineSmile className="text-5xl text-green-500 mt-4" />
+            ) : (
+              <AiOutlineFrown className="text-5xl text-red-500 mt-4" />
+            )}
+            <p className="text-sm text-gray-500 mt-2">Chain ID: {tokenData?.chainId.toUpperCase()}</p>
+            {tokenData?.symbol && <p className="text-sm text-gray-500">Symbol: {tokenData.symbol}</p>}
+            {pairData?.length > 0 && (
+              <div className="mt-4 text-left w-full">
+                <h3 className="font-semibold">Pair Information:</h3>
+                <p>
+                  <span className="font-semibold">Liquidity (USD):</span> $
+                  {pairData[0]?.liquidity?.usd ? pairData[0].liquidity.usd.toFixed(2) : "N/A"}
+                </p>
+                <p>
+                  <span className="font-semibold">Price (USD):</span> $
+                  {pairData[0]?.priceUsd ? parseFloat(pairData[0].priceUsd).toFixed(9) : "N/A"}
+                </p>
+                <div className="mt-4">
+                  <h3 className="font-semibold">Transactions:</h3>
+                  <p>5 Min - Buys: {pairData[0]?.txns?.m5?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.m5?.sells ?? "N/A"}</p>
+                  <p>1 Hour - Buys: {pairData[0]?.txns?.h1?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.h1?.sells ?? "N/A"}</p>
+                  <p>24 Hours - Buys: {pairData[0]?.txns?.h24?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.h24?.sells ?? "N/A"}</p>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
+        <section className="bg-gray-900 p-4 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-4">Latest Boosted Tokens</h2>
+          <button
+            onClick={fetchLatestBoostedTokens}
+            className={`text-blue-400 hover:underline flex items-center gap-2 mb-4 ${isRefreshing ? "rotate" : ""}`}
+          >
+            <FaSync className={isRefreshing ? "animate-spin" : ""} /> Refresh
+          </button>
+          {latestBoosted?.length > 0 ? (
+            latestBoosted.map((token, index) => (
+              <div key={index} className="flex items-center gap-4 mt-4">
+                <img src={token.icon || ""} alt="Token Icon" className="w-10 h-10" />
+                <div className="truncate w-full">
+                  <p>{token.description?.length > 50 ? `${token.description.slice(0, 50)}...` : token.description}</p>
+                  <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                    View
+                  </a>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>No boosted tokens available.</p>
+          )}
+        </section>
+
+        <section className="bg-gray-900 p-4 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-4">Trending Tokens</h2>
+          {trendingTokens?.length > 0 ? (
+            trendingTokens.map((token, index) => (
+              <div key={index} className="flex items-center gap-4 mt-4">
+                <img src={token.icon || "/default-icon.png"} alt="Token Icon" className="w-10 h-10" />
+                <div className="truncate w-full">
+                  <p>{token.description?.length > 50 ? `${token.description.slice(0, 50)}...` : token.description}</p>
+                  <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                    View
+                  </a>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>No trending tokens available.</p>
+          )}
+        </section>
+      </div>
+      <Footer />
     </main>
-    </>
   );
 }

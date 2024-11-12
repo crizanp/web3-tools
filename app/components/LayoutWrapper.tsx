@@ -1,9 +1,7 @@
 "use client"; // Mark this as a Client Component
 
 import { usePathname } from 'next/navigation';
-import Navbar from './Navbar';
-import Footer from './Footer';
-import AdminLayout from './AdminLayout'; // Import AdminLayout
+
 
 export default function LayoutWrapper({ children }) {
   const pathname = usePathname();
@@ -18,9 +16,7 @@ export default function LayoutWrapper({ children }) {
   return (
     <>
       {isAdminRoute ? (
-        <AdminLayout> {/* Use AdminLayout for admin routes */}
           {children}
-        </AdminLayout>
       ) : isDigitalGiftPage || isDexScreenerPage ? (
         // For digitalgift and dexScreener pages, render only the children without Navbar and Footer
         <>
@@ -29,9 +25,9 @@ export default function LayoutWrapper({ children }) {
       ) : (
         // For all other routes, render the Navbar, main content, and Footer
         <>
-          <Navbar /> {/* Show Navbar for non-admin routes */}
+          {/* <Navbar /> Show Navbar for non-admin routes */}
           {children} {/* Render the main page content */}
-          <Footer /> {/* Show Footer for non-admin routes */}
+          {/* <Footer /> Show Footer for non-admin routes */}
         </>
       )}
     </>

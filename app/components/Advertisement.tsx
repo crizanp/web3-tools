@@ -9,7 +9,6 @@ export default function Advertisement() {
           <style jsx>{`
               .advertisement-container {
                   width: 100%; /* Ensures the entire ad (image + text) covers 80% of the width */
-                  max-width: 1000px; /* Limits max width if needed */
                   margin: 0 auto; /* Center-aligns the ad in the viewport */
                   display: flex;
                   flex-direction: column;

@@ -13,7 +13,20 @@
     --foreground: #ededed;
   }
 }
+.no-scrollbar {
+  overflow-x: auto;
+  display: flex;
+  padding: 0 8px;
+}
 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
 body {
   color: var(--foreground);
   background: var(--background);
