@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import PuffLoader from "react-spinners/PuffLoader";
-import { AiOutlineSearch } from "react-icons/ai";
+import { AiOutlineSearch, AiOutlineWarning, AiOutlineSmile, AiOutlineFrown } from "react-icons/ai";
 import { FaSync } from "react-icons/fa";
 
 interface TokenData {
@@ -36,6 +36,16 @@ interface PairData {
   info?: {
     imageUrl?: string;
   };
+  txns: {
+    m5: { buys: number; sells: number };
+    h1: { buys: number; sells: number };
+    h24: { buys: number; sells: number };
+  };
+  priceChange: {
+    m5: number;
+    h1: number;
+    h24: number;
+  };
 }
 
 interface BoostedToken {
@@ -49,7 +59,7 @@ interface BoostedToken {
 }
 
 const popularTokens = [
-  "5PX34R7hD8zs1fPgNYSosmDkVa2ryRFrXkKGx1C4pump",
+  "ECZxKmKGEkyKhYUau7WkUE1L9Jp2yLebwX4SnKc1pump",
   "9yNEs1Z96EF4Y5NTufU9FyRAz6jbGzZLBfRQCtssPtAQ",
   "3KAeVfDbU6tZxSD2kqz3Pz6B6f42CW3FdA89GUZ8fw23",
 ];
@@ -57,13 +67,15 @@ const popularTokens = [
 export default function DexCheckerPage() {
   const [tokenAddressInput, setTokenAddressInput] = useState("");
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
-  const [orders, setOrders] = useState<Order[]>([]);
   const [pairData, setPairData] = useState<PairData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [latestBoosted, setLatestBoosted] = useState<BoostedToken[]>([]);
   const [trendingTokens, setTrendingTokens] = useState<BoostedToken[]>([]);
   const [isPaid, setIsPaid] = useState(false);
+  const [noTokenInfo, setNoTokenInfo] = useState(false);
+  const [iconError, setIconError] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false); // State to track if refreshing
 
   useEffect(() => {
     fetchTrendingTokens();
@@ -81,38 +93,59 @@ export default function DexCheckerPage() {
   };
 
   const fetchLatestBoostedTokens = async () => {
+    setIsRefreshing(true);
     try {
       const response = await fetch("https://api.dexscreener.com/token-boosts/latest/v1");
       const data = await response.json();
       setLatestBoosted(data.slice(0, 5));
     } catch {
       setError("Failed to load boosted tokens.");
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
   const fetchTokenDetails = async () => {
     try {
+      setNoTokenInfo(false);
+      setIconError(false);
+
       const response = await fetch(
         `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(tokenAddressInput)}`
       );
       const data = await response.json();
-      const matchedPair = data.pairs.find(
+
+      const matchedPair = data.pairs?.find(
         (pair: PairData) => pair.baseToken.address.toLowerCase() === tokenAddressInput.toLowerCase()
       );
 
-      if (!matchedPair) throw new Error("Token not found. Check the address and try again.");
+      if (matchedPair) {
+        setTokenData({
+          chainId: matchedPair.chainId,
+          tokenAddress: tokenAddressInput,
+          description: `Pair on ${matchedPair.dexId}`,
+          url: matchedPair.url,
+          icon: matchedPair.info?.imageUrl || "", // Empty if no icon is available
+          symbol: matchedPair.baseToken.symbol,
+        });
+        setPairData([matchedPair]);
+        return matchedPair.chainId;
+      }
 
-      setTokenData({
-        chainId: matchedPair.chainId,
-        tokenAddress: tokenAddressInput,
-        description: `Pair on ${matchedPair.dexId}`,
-        url: matchedPair.url,
-        icon: matchedPair.info?.imageUrl || "/default-icon.png",
-        symbol: matchedPair.baseToken.symbol,
-      });
+      if (tokenAddressInput.toLowerCase().endsWith("pump")) {
+        setTokenData({
+          chainId: "solana",
+          tokenAddress: tokenAddressInput,
+          description: "Solana Token (Pump Suffix)",
+          url: "",
+          icon: "", // Empty if no icon is available
+        });
+        setPairData([]);
+        return "solana";
+      }
 
-      setPairData([matchedPair]);
-      return matchedPair.chainId;
+      setNoTokenInfo(true);
+      throw new Error("Token not found. Check the address and try again.");
     } catch (err) {
       setError("Failed to fetch token details.");
       setLoading(false);
@@ -120,28 +153,14 @@ export default function DexCheckerPage() {
     }
   };
 
-  const fetchOrderStatus = async (chainId: string) => {
-    try {
-      const response = await fetch(
-        `https://api.dexscreener.com/orders/v1/${chainId}/${encodeURIComponent(tokenAddressInput)}`
-      );
-      if (!response.ok) throw new Error("Failed to check orders for the token");
-
-      const data = await response.json();
-      setOrders(data || []);
-      setIsPaid(data.some((order: Order) => order.status === "approved"));
-    } catch (err) {
-      setError("Failed to fetch payment orders for the token.");
-    }
-  };
-
   const checkDexPayment = async () => {
     setLoading(true);
     setError(null);
-    setOrders([]);
     setPairData([]);
     setTokenData(null);
     setIsPaid(false);
+    setNoTokenInfo(false);
+    setIconError(false);
 
     try {
       const chainId = await fetchTokenDetails();
@@ -155,121 +174,156 @@ export default function DexCheckerPage() {
     }
   };
 
+  const fetchOrderStatus = async (chainId: string) => {
+    try {
+      const endpoint =
+        chainId === "solana"
+          ? `https://api.dexscreener.com/orders/v1/solana/${encodeURIComponent(tokenAddressInput)}`
+          : `https://api.dexscreener.com/orders/v1/${chainId}/${encodeURIComponent(tokenAddressInput)}`;
+
+      const response = await fetch(endpoint);
+      if (!response.ok) throw new Error("Failed to check orders for the token");
+
+      const data = await response.json();
+      setIsPaid(data.some((order: Order) => order.status === "approved"));
+    } catch (err) {
+      setError("Failed to fetch payment orders for the token.");
+    }
+  };
+
   const handlePopularSearchClick = (token: string) => {
-    setTokenAddressInput(token); // Only set the input value without triggering a search
+    setTokenAddressInput(token);
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      checkDexPayment(); // Trigger search on Enter key press
+    if (event.key === "Enter") {
+      checkDexPayment();
     }
   };
 
   return (
-    <main className="relative flex flex-col items-center justify-start min-h-screen bg-gradient-to-br from-purple-900 via-black to-blue-900 text-white p-4 pt-16">
-      <div className="absolute inset-0 z-0 animate-pulse bg-gradient-to-r from-purple-700 to-blue-600 opacity-20" />
+    <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-800 to-gray-900 text-white p-6 space-y-8">
+      <div className="max-w-lg w-full">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-6">DEX Screener Paid Checker</h1>
 
-      <h1 className="text-4xl font-bold mb-8 z-10">DEXScreener Payment Checker</h1>
-
-      <div className="text-gray-400 mb-4 z-10">
-        <p>Popular Searches:</p>
-        <div className="flex space-x-2 mt-2">
-          {popularTokens.map((token) => (
-            <button
-              key={token}
-              onClick={() => handlePopularSearchClick(token)}
-              className="bg-gray-700 text-white px-2 py-1 rounded-md hover:bg-gray-600"
-            >
-              {token.slice(0, 4)}...{token.slice(-4)}
-            </button>
-          ))}
+        <div className="bg-gray-700 rounded-full flex items-center px-4 py-2 space-x-4">
+          <input
+            type="text"
+            placeholder="Enter token address"
+            value={tokenAddressInput}
+            onChange={(e) => setTokenAddressInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="bg-transparent outline-none text-white placeholder-gray-300 flex-grow"
+          />
+          <button onClick={checkDexPayment}>
+            <AiOutlineSearch className="text-2xl text-white" />
+          </button>
+        </div>
+        
+        <div className="text-center mt-4 text-gray-400">
+          <p>Popular Searches:</p>
+          <div className="flex justify-center space-x-2 mt-2">
+            {popularTokens.map((token) => (
+              <button
+                key={token}
+                onClick={() => handlePopularSearchClick(token)}
+                className="bg-gray-800 text-gray-300 px-2 py-1 rounded-md hover:bg-gray-700"
+              >
+                {token.slice(0, 4)}...{token.slice(-4)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="mb-8 relative z-10 w-full max-w-md">
-        <input
-          type="text"
-          placeholder="Enter token address"
-          value={tokenAddressInput}
-          onChange={(e) => setTokenAddressInput(e.target.value)}
-          onKeyPress={handleKeyPress} // Trigger search on Enter key press
-          className="w-full px-4 py-2 pr-10 rounded-md text-gray-800 focus:outline-none"
-        />
-        <button
-          onClick={checkDexPayment} // Trigger search on icon click
-          className="absolute right-2 top-1/2 transform -translate-y-1/2"
-        >
-          <AiOutlineSearch className="text-black text-2xl" />
-        </button>
-      </div>
-
       {loading && (
-        <div className="flex items-center justify-center z-10">
+        <div className="flex items-center justify-center">
           <PuffLoader color="#36D7B7" size={60} />
         </div>
       )}
 
       {error && (
         <motion.div
-          className="relative p-6 bg-red-800 rounded-lg shadow-md text-center mb-8 z-10"
+          className="bg-red-600 p-6 rounded-lg text-center w-full max-w-md"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          whileHover={{ scale: 1.05 }}
         >
-          <span role="img" aria-label="sad" className="text-4xl mb-2">
-            😞
-          </span>
-          <h2 className="text-2xl font-bold text-red-400 mb-2">Failed to fetch token details</h2>
-          <p className="text-gray-200">Please check the token address or try again later.</p>
+          <p className="text-xl">Failed to fetch token details. Please check and try again.</p>
         </motion.div>
       )}
 
-      {isPaid && tokenData && (
+      {tokenData && (
         <motion.div
-          className="relative p-6 bg-gray-800 rounded-lg shadow-md text-center mb-8 z-10"
+          className="bg-gray-800 p-6 rounded-lg text-center w-full max-w-md flex flex-col items-center justify-center"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          whileHover={{ scale: 1.1 }}
         >
-          <h2 className="text-3xl font-bold text-green-400 mb-2">Yes, the DEX is paid!</h2>
-          <img src={tokenData.icon} alt="Token Icon" className="w-16 h-16 mx-auto mb-4" />
-          <h3 className="text-xl font-bold">{tokenData.symbol}</h3>
-          <p className="text-gray-400">Chain ID: {tokenData.chainId.toUpperCase()}</p>
+          <h2 className="text-2xl font-bold mb-4">
+            {isPaid ? "Yes, the DEX is paid!" : "No, the DEX has not paid."}
+          </h2>
+          
+          {tokenData.icon ? (
+            <img
+              src={tokenData.icon}
+              alt="Token Icon"
+              className="w-12 h-12 mx-auto"
+              onError={() => setIconError(true)}
+            />
+          ) : isPaid ? (
+            <AiOutlineSmile className="text-5xl text-green-500 mt-4" />
+          ) : (
+            <AiOutlineFrown className="text-5xl text-red-500 mt-4" />
+          )}
+
+          <p className="text-sm text-gray-500 mt-2">Chain ID: {tokenData.chainId.toUpperCase()}</p>
+          {tokenData.symbol && (
+            <p className="text-sm text-gray-500">Symbol: {tokenData.symbol}</p>
+          )}
+
+          {pairData.length > 0 && (
+            <div className="mt-4 text-left w-full">
+              <h3 className="font-semibold">Pair Information:</h3>
+              <p><span className="font-semibold">Liquidity (USD):</span> ${pairData[0].liquidity.usd.toFixed(2)}</p>
+              <p><span className="font-semibold">Price (USD):</span> ${pairData[0].priceUsd}</p>
+
+              <div className="mt-4">
+                <h3 className="font-semibold">Transactions:</h3>
+                <p>5 Min - Buys: {pairData[0].txns.m5.buys}, Sells: {pairData[0].txns.m5.sells}</p>
+                <p>1 Hour - Buys: {pairData[0].txns.h1.buys}, Sells: {pairData[0].txns.h1.sells}</p>
+                <p>24 Hours - Buys: {pairData[0].txns.h24.buys}, Sells: {pairData[0].txns.h24.sells}</p>
+              </div>
+            </div>
+          )}
         </motion.div>
       )}
 
-      {!isPaid && tokenData && !loading && (
-        <div className="p-6 bg-gray-800 rounded-lg shadow-md text-center mb-8 z-10">
-          <h2 className="text-2xl font-bold text-yellow-400">No, the DEX has not paid.</h2>
-          <img src={tokenData.icon || "/default-icon.png"} alt="Token Icon" className="w-16 h-16 mx-auto mb-4" />
-          <h3 className="text-xl font-bold">{tokenData.symbol}</h3>
-          <p className="text-gray-400">Chain ID: {tokenData.chainId.toUpperCase()}</p>
-        </div>
-      )}
-
-      <div className="flex justify-between w-full max-w-4xl space-x-4 z-10">
-        <section className="bg-gray-900 p-4 rounded-lg shadow-md w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
+        <section className="bg-gray-900 p-4 rounded-lg shadow-md">
           <h2 className="text-xl font-bold mb-4">Latest Boosted Tokens</h2>
-          <button onClick={fetchLatestBoostedTokens} className="text-blue-400 hover:underline flex items-center gap-2">
-            <FaSync /> Refresh
+          <button
+            onClick={fetchLatestBoostedTokens}
+            className={`text-blue-400 hover:underline flex items-center gap-2 mb-4 ${
+              isRefreshing ? "rotate" : ""
+            }`}
+          >
+            <FaSync className={isRefreshing ? "animate-spin" : ""} /> Refresh
           </button>
           {latestBoosted.map((token, index) => (
-  <div key={index} className="flex items-center gap-4 mt-4">
-    <img src={token.icon || ""} alt="Token Icon" className="w-10 h-10" />
-    <div className="truncate w-full">
-      <p>{token.description?.length > 50 ? `${token.description.slice(0, 50)}...` : token.description || token.tokenAddress }</p>
-      <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
-        View
-      </a>
-    </div>
-  </div>
-))}
-
+            <div key={index} className="flex items-center gap-4 mt-4">
+              <img src={token.icon || ""} alt="Token Icon" className="w-10 h-10" />
+              <div className="truncate w-full">
+                <p>{token.description?.length > 50 ? `${token.description.slice(0, 50)}...` : token.description || token.tokenAddress }</p>
+                <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                  View
+                </a>
+              </div>
+            </div>
+          ))}
         </section>
 
-        <section className="bg-gray-900 p-4 rounded-lg shadow-md w-full">
+        <section className="bg-gray-900 p-4 rounded-lg shadow-md">
           <h2 className="text-xl font-bold mb-4">Trending Tokens</h2>
           {trendingTokens.map((token, index) => (
             <div key={index} className="flex items-center gap-4 mt-4">
@@ -284,6 +338,22 @@ export default function DexCheckerPage() {
           ))}
         </section>
       </div>
+
+      {/* Inline CSS for animation */}
+      <style jsx>{`
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </main>
   );
 }
