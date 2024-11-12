@@ -70,7 +70,7 @@ export default function DexCheckerPage() {
   const [tokenAddressInput, setTokenAddressInput] = useState("");
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [pairData, setPairData] = useState<PairData[]>([]);
-  const [latestBoosted, setLatestBoosted] = useState<BoostedToken[]>([]); // Defined latestBoosted state
+  const [latestBoosted, setLatestBoosted] = useState<BoostedToken[]>([]);
   const [trendingTokens, setTrendingTokens] = useState<BoostedToken[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +78,6 @@ export default function DexCheckerPage() {
   const [noTokenInfo, setNoTokenInfo] = useState(false);
   const [iconError, setIconError] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
   useEffect(() => {
     fetchTrendingTokens();
     fetchLatestBoostedTokens();
@@ -228,9 +227,8 @@ export default function DexCheckerPage() {
   };
 
   return (
-  <>      
     <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-800 to-gray-900 text-white p-6 space-y-8">
-  <Advertisement />
+      <Advertisement />
 
       <div className="max-w-lg w-full">
         <h1 className="text-3xl md:text-4xl font-bold text-center mb-6">DEX Screener Paid Checker</h1>
@@ -241,7 +239,7 @@ export default function DexCheckerPage() {
             placeholder="Enter token address"
             value={tokenAddressInput}
             onChange={(e) => setTokenAddressInput(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyPress={(event) => event.key === "Enter" && checkDexPayment()}
             className="bg-transparent outline-none text-white placeholder-gray-300 flex-grow"
           />
           <button onClick={checkDexPayment}>
@@ -278,7 +276,7 @@ export default function DexCheckerPage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <p className="text-xl">Failed to fetch token details. Please check and try again.</p>
+          <p className="text-xl">{error}</p>
         </motion.div>
       )}
 
@@ -292,7 +290,6 @@ export default function DexCheckerPage() {
           <h2 className="text-2xl font-bold mb-4">
             {isPaid ? "Yes, the DEX is paid!" : "No, the DEX has not paid."}
           </h2>
-
           {tokenData.icon ? (
             <img
               src={tokenData.icon}
@@ -305,13 +302,9 @@ export default function DexCheckerPage() {
           ) : (
             <AiOutlineFrown className="text-5xl text-red-500 mt-4" />
           )}
-
           <p className="text-sm text-gray-500 mt-2">Chain ID: {tokenData.chainId.toUpperCase()}</p>
-          {tokenData.symbol && (
-            <p className="text-sm text-gray-500">Symbol: {tokenData.symbol}</p>
-          )}
-
-          {pairData.length > 0 && (
+          {tokenData.symbol && <p className="text-sm text-gray-500">Symbol: {tokenData.symbol}</p>}
+          {pairData?.length > 0 && (
             <div className="mt-4 text-left w-full">
               <h3 className="font-semibold">Pair Information:</h3>
               <p>
@@ -320,24 +313,16 @@ export default function DexCheckerPage() {
               </p>
               <p>
                 <span className="font-semibold">Price (USD):</span> $
-                {pairData[0]?.priceUsd ? parseFloat(pairData[0].priceUsd).toFixed(9) : "N/A"}
+                {pairData[0]?.priceUsd ? parseFloat(pairData[0].priceUsd).toFixed(2) : "N/A"}
               </p>
-
               <div className="mt-4">
                 <h3 className="font-semibold">Transactions:</h3>
-                <p>
-                  5 Min - Buys: {pairData[0]?.txns?.m5?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.m5?.sells ?? "N/A"}
-                </p>
-                <p>
-                  1 Hour - Buys: {pairData[0]?.txns?.h1?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.h1?.sells ?? "N/A"}
-                </p>
-                <p>
-                  24 Hours - Buys: {pairData[0]?.txns?.h24?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.h24?.sells ?? "N/A"}
-                </p>
+                <p>5 Min - Buys: {pairData[0]?.txns?.m5?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.m5?.sells ?? "N/A"}</p>
+                <p>1 Hour - Buys: {pairData[0]?.txns?.h1?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.h1?.sells ?? "N/A"}</p>
+                <p>24 Hours - Buys: {pairData[0]?.txns?.h24?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.h24?.sells ?? "N/A"}</p>
               </div>
             </div>
           )}
-
         </motion.div>
       )}
 
@@ -350,51 +335,43 @@ export default function DexCheckerPage() {
           >
             <FaSync className={isRefreshing ? "animate-spin" : ""} /> Refresh
           </button>
-          {latestBoosted.map((token, index) => (
-            <div key={index} className="flex items-center gap-4 mt-4">
-              <img src={token.icon || ""} alt="Token Icon" className="w-10 h-10" />
-              <div className="truncate w-full">
-                <p>{token.description?.length > 50 ? `${token.description.slice(0, 50)}...` : token.description || token.tokenAddress}</p>
-                <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
-                  View
-                </a>
+          {latestBoosted?.length > 0 ? (
+            latestBoosted.map((token, index) => (
+              <div key={index} className="flex items-center gap-4 mt-4">
+                <img src={token.icon || ""} alt="Token Icon" className="w-10 h-10" />
+                <div className="truncate w-full">
+                  <p>{token.description?.length > 50 ? `${token.description.slice(0, 50)}...` : token.description}</p>
+                  <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                    View
+                  </a>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p>No boosted tokens available.</p>
+          )}
         </section>
 
         <section className="bg-gray-900 p-4 rounded-lg shadow-md">
           <h2 className="text-xl font-bold mb-4">Trending Tokens</h2>
-          {trendingTokens.map((token, index) => (
-            <div key={index} className="flex items-center gap-4 mt-4">
-              <img src={token.icon || "/default-icon.png"} alt="Token Icon" className="w-10 h-10" />
-              <div className="truncate w-full">
-                <p>{token.description.length > 50 ? `${token.description.slice(0, 50)}...` : token.description}</p>
-                <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
-                  View
-                </a>
+          {trendingTokens?.length > 0 ? (
+            trendingTokens.map((token, index) => (
+              <div key={index} className="flex items-center gap-4 mt-4">
+                <img src={token.icon || "/default-icon.png"} alt="Token Icon" className="w-10 h-10" />
+                <div className="truncate w-full">
+                  <p>{token.description?.length > 50 ? `${token.description.slice(0, 50)}...` : token.description}</p>
+                  <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                    View
+                  </a>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p>No trending tokens available.</p>
+          )}
         </section>
       </div>
-
-      <style jsx>{`
-        .animate-spin {
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>    <Footer/>
-
+      <Footer />
     </main>
-  </>
   );
 }
