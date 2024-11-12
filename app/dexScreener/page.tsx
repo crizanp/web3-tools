@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import PuffLoader from "react-spinners/PuffLoader";
 import { AiOutlineSearch, AiOutlineWarning, AiOutlineSmile, AiOutlineFrown } from "react-icons/ai";
 import { FaSync } from "react-icons/fa";
+import Advertisement from "../components/Advertisement";
+import Footer from "../components/Footer_IGH";
 
 interface TokenData {
   chainId: string;
@@ -68,14 +70,14 @@ export default function DexCheckerPage() {
   const [tokenAddressInput, setTokenAddressInput] = useState("");
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [pairData, setPairData] = useState<PairData[]>([]);
+  const [latestBoosted, setLatestBoosted] = useState<BoostedToken[]>([]); // Defined latestBoosted state
+  const [trendingTokens, setTrendingTokens] = useState<BoostedToken[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [latestBoosted, setLatestBoosted] = useState<BoostedToken[]>([]);
-  const [trendingTokens, setTrendingTokens] = useState<BoostedToken[]>([]);
   const [isPaid, setIsPaid] = useState(false);
   const [noTokenInfo, setNoTokenInfo] = useState(false);
   const [iconError, setIconError] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false); // State to track if refreshing
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchTrendingTokens();
@@ -125,23 +127,24 @@ export default function DexCheckerPage() {
           tokenAddress: tokenAddressInput,
           description: `Pair on ${matchedPair.dexId}`,
           url: matchedPair.url,
-          icon: matchedPair.info?.imageUrl || "", // Empty if no icon is available
+          icon: matchedPair.info?.imageUrl || "",
           symbol: matchedPair.baseToken.symbol,
         });
         setPairData([matchedPair]);
         return matchedPair.chainId;
       }
 
-      if (tokenAddressInput.toLowerCase().endsWith("pump")) {
+      // Infer chainId from address if DEX Screener doesn't return data
+      const inferredChainId = inferChainIdFromAddress(tokenAddressInput);
+      if (inferredChainId) {
         setTokenData({
-          chainId: "solana",
+          chainId: inferredChainId,
           tokenAddress: tokenAddressInput,
-          description: "Solana Token (Pump Suffix)",
+          description: "Inferred Chain",
           url: "",
-          icon: "", // Empty if no icon is available
+          icon: "",
         });
-        setPairData([]);
-        return "solana";
+        return inferredChainId;
       }
 
       setNoTokenInfo(true);
@@ -151,6 +154,18 @@ export default function DexCheckerPage() {
       setLoading(false);
       return null;
     }
+  };
+
+  const inferChainIdFromAddress = (address: string) => {
+    // Use known address formats to infer the chainId
+    if (address.startsWith("0x")) {
+      return "ethereum"; // Could be Ethereum, BSC, Polygon, etc.
+    } else if (address.match(/^[1-9A-HJ-NP-Za-km-z]+$/)) {
+      return "solana"; // Base58 encoding, common for Solana
+    } else if (address.startsWith("bnb")) {
+      return "bsc"; // Binance Smart Chain
+    }
+    return null;
   };
 
   const checkDexPayment = async () => {
@@ -202,7 +217,10 @@ export default function DexCheckerPage() {
   };
 
   return (
+  <>      
     <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-800 to-gray-900 text-white p-6 space-y-8">
+  <Advertisement />
+
       <div className="max-w-lg w-full">
         <h1 className="text-3xl md:text-4xl font-bold text-center mb-6">DEX Screener Paid Checker</h1>
 
@@ -219,7 +237,7 @@ export default function DexCheckerPage() {
             <AiOutlineSearch className="text-2xl text-white" />
           </button>
         </div>
-        
+
         <div className="text-center mt-4 text-gray-400">
           <p>Popular Searches:</p>
           <div className="flex justify-center space-x-2 mt-2">
@@ -263,7 +281,7 @@ export default function DexCheckerPage() {
           <h2 className="text-2xl font-bold mb-4">
             {isPaid ? "Yes, the DEX is paid!" : "No, the DEX has not paid."}
           </h2>
-          
+
           {tokenData.icon ? (
             <img
               src={tokenData.icon}
@@ -285,17 +303,30 @@ export default function DexCheckerPage() {
           {pairData.length > 0 && (
             <div className="mt-4 text-left w-full">
               <h3 className="font-semibold">Pair Information:</h3>
-              <p><span className="font-semibold">Liquidity (USD):</span> ${pairData[0].liquidity.usd.toFixed(2)}</p>
-              <p><span className="font-semibold">Price (USD):</span> ${pairData[0].priceUsd}</p>
+              <p>
+                <span className="font-semibold">Liquidity (USD):</span> $
+                {pairData[0]?.liquidity?.usd ? pairData[0].liquidity.usd.toFixed(2) : "N/A"}
+              </p>
+              <p>
+                <span className="font-semibold">Price (USD):</span> $
+                {pairData[0]?.priceUsd ? parseFloat(pairData[0].priceUsd).toFixed(9) : "N/A"}
+              </p>
 
               <div className="mt-4">
                 <h3 className="font-semibold">Transactions:</h3>
-                <p>5 Min - Buys: {pairData[0].txns.m5.buys}, Sells: {pairData[0].txns.m5.sells}</p>
-                <p>1 Hour - Buys: {pairData[0].txns.h1.buys}, Sells: {pairData[0].txns.h1.sells}</p>
-                <p>24 Hours - Buys: {pairData[0].txns.h24.buys}, Sells: {pairData[0].txns.h24.sells}</p>
+                <p>
+                  5 Min - Buys: {pairData[0]?.txns?.m5?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.m5?.sells ?? "N/A"}
+                </p>
+                <p>
+                  1 Hour - Buys: {pairData[0]?.txns?.h1?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.h1?.sells ?? "N/A"}
+                </p>
+                <p>
+                  24 Hours - Buys: {pairData[0]?.txns?.h24?.buys ?? "N/A"}, Sells: {pairData[0]?.txns?.h24?.sells ?? "N/A"}
+                </p>
               </div>
             </div>
           )}
+
         </motion.div>
       )}
 
@@ -304,9 +335,7 @@ export default function DexCheckerPage() {
           <h2 className="text-xl font-bold mb-4">Latest Boosted Tokens</h2>
           <button
             onClick={fetchLatestBoostedTokens}
-            className={`text-blue-400 hover:underline flex items-center gap-2 mb-4 ${
-              isRefreshing ? "rotate" : ""
-            }`}
+            className={`text-blue-400 hover:underline flex items-center gap-2 mb-4 ${isRefreshing ? "rotate" : ""}`}
           >
             <FaSync className={isRefreshing ? "animate-spin" : ""} /> Refresh
           </button>
@@ -314,7 +343,7 @@ export default function DexCheckerPage() {
             <div key={index} className="flex items-center gap-4 mt-4">
               <img src={token.icon || ""} alt="Token Icon" className="w-10 h-10" />
               <div className="truncate w-full">
-                <p>{token.description?.length > 50 ? `${token.description.slice(0, 50)}...` : token.description || token.tokenAddress }</p>
+                <p>{token.description?.length > 50 ? `${token.description.slice(0, 50)}...` : token.description || token.tokenAddress}</p>
                 <a href={token.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
                   View
                 </a>
@@ -339,7 +368,6 @@ export default function DexCheckerPage() {
         </section>
       </div>
 
-      {/* Inline CSS for animation */}
       <style jsx>{`
         .animate-spin {
           animation: spin 1s linear infinite;
@@ -353,7 +381,9 @@ export default function DexCheckerPage() {
             transform: rotate(360deg);
           }
         }
-      `}</style>
+      `}</style>    <Footer/>
+
     </main>
+  </>
   );
 }
