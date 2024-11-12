@@ -217,7 +217,7 @@ export default function DexCheckerPage() {
     } finally {
       setLoading(false);
       if (outputRef.current) {
-        outputRef.current.scrollIntoView({ behavior: "smooth" });
+        outputRef.current.scrollIntoView({ behavior: "smooth" , block: "center"});
       }
     }
   };
