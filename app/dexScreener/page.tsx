@@ -88,53 +88,63 @@ export default function DexCheckerPage() {
     try {
       const response = await fetch("https://api.dexscreener.com/token-boosts/top/v1");
       const data = await response.json();
-      setTrendingTokens(data.slice(0, 5));
+      if (Array.isArray(data)) { // Ensure data is an array
+        setTrendingTokens(data.slice(0, 5));
+      } else {
+        setError("Unexpected data format for trending tokens.");
+      }
     } catch {
       setError("Failed to load trending tokens.");
     }
   };
-
+  
   const fetchLatestBoostedTokens = async () => {
     setIsRefreshing(true);
     try {
       const response = await fetch("https://api.dexscreener.com/token-boosts/latest/v1");
       const data = await response.json();
-      setLatestBoosted(data.slice(0, 5));
+      if (Array.isArray(data)) { // Ensure data is an array
+        setLatestBoosted(data.slice(0, 5));
+      } else {
+        setError("Unexpected data format for boosted tokens.");
+      }
     } catch {
       setError("Failed to load boosted tokens.");
     } finally {
       setIsRefreshing(false);
     }
   };
-
+  
   const fetchTokenDetails = async () => {
     try {
       setNoTokenInfo(false);
       setIconError(false);
-
+  
       const response = await fetch(
         `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(tokenAddressInput)}`
       );
       const data = await response.json();
-
-      const matchedPair = data.pairs?.find(
-        (pair: PairData) => pair.baseToken.address.toLowerCase() === tokenAddressInput.toLowerCase()
-      );
-
-      if (matchedPair) {
-        setTokenData({
-          chainId: matchedPair.chainId,
-          tokenAddress: tokenAddressInput,
-          description: `Pair on ${matchedPair.dexId}`,
-          url: matchedPair.url,
-          icon: matchedPair.info?.imageUrl || "",
-          symbol: matchedPair.baseToken.symbol,
-        });
-        setPairData([matchedPair]);
-        return matchedPair.chainId;
+  
+      if (data && Array.isArray(data.pairs)) { // Check if data.pairs exists and is an array
+        const matchedPair = data.pairs.find(
+          (pair: PairData) => pair.baseToken.address.toLowerCase() === tokenAddressInput.toLowerCase()
+        );
+  
+        if (matchedPair) {
+          setTokenData({
+            chainId: matchedPair.chainId,
+            tokenAddress: tokenAddressInput,
+            description: `Pair on ${matchedPair.dexId}`,
+            url: matchedPair.url,
+            icon: matchedPair.info?.imageUrl || "",
+            symbol: matchedPair.baseToken.symbol,
+          });
+          setPairData([matchedPair]);
+          return matchedPair.chainId;
+        }
       }
-
-      // Infer chainId from address if DEX Screener doesn't return data
+  
+      // If no match is found, infer the chainId
       const inferredChainId = inferChainIdFromAddress(tokenAddressInput);
       if (inferredChainId) {
         setTokenData({
@@ -146,7 +156,7 @@ export default function DexCheckerPage() {
         });
         return inferredChainId;
       }
-
+  
       setNoTokenInfo(true);
       throw new Error("Token not found. Check the address and try again.");
     } catch (err) {
@@ -155,6 +165,7 @@ export default function DexCheckerPage() {
       return null;
     }
   };
+  
 
   const inferChainIdFromAddress = (address: string) => {
     // Use known address formats to infer the chainId
