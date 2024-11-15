@@ -1,9 +1,9 @@
 export default function Advertisement() {
   return (
       <div className="advertisement-container">
-          <a href="https://icogemhunters.com" target="_blank" rel="noopener noreferrer" ><img src="./images/ads1.webp" alt="Advertisement Image" className="advertisement-image" /></a>
+          <a href="https://crijanblog.vercel.app" target="_blank" rel="noopener noreferrer" ><img src="./images/image.png" alt="Advertisement Image" className="advertisement-image" /></a>
           <div className="advertisement-text">
-              <p><a href="https://t.me/gemhuntersclub_bot" target="_blank" rel="noopener noreferrer" >💎 Play to Earn $GEMS – Collect tokens and build your fortune! 💎</a></p>
+              <p><a href="https://crijanblog.vercel.app" target="_blank" rel="noopener noreferrer" >💎 This is advertisement section [text ads] 💎</a></p>
           </div>
 
           <style jsx>{`

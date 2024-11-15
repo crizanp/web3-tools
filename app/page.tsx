@@ -63,7 +63,6 @@ interface BoostedToken {
 const popularTokens = [
   "GJAFwWjJ3vnTsrQVabjBVK2TYB1YtRCQXRDfDgUnpump",
   "ECZxKmKGEkyKhYUau7WkUE1L9Jp2yLebwX4SnKc1pump",
-  "9yNEs1Z96EF4Y5NTufU9FyRAz6jbGzZLBfRQCtssPtAQ",
   "3KAeVfDbU6tZxSD2kqz3Pz6B6f42CW3FdA89GUZ8fw23",
   "72XUGRRzuSoLRch3QPpSPHkuZ8F58rvtCNF4QSosLb4H",
 ];
@@ -90,7 +89,7 @@ export default function DexCheckerPage() {
 
   const fetchTrendingTokens = async () => {
     try {
-      const response = await fetch("https://api.dexscreener.com/token-boosts/top/v1");
+      const response = await fetch(process.env.NEXT_PUBLIC_TT_API!);
       const data = await response.json();
       if (Array.isArray(data)) {
         setTrendingTokens(data.slice(0, 5));
@@ -105,7 +104,7 @@ export default function DexCheckerPage() {
   const fetchLatestBoostedTokens = async () => {
     setIsRefreshing(true);
     try {
-      const response = await fetch("https://api.dexscreener.com/token-boosts/latest/v1");
+      const response = await fetch(process.env.NEXT_PUBLIC_LB_API!);
       const data = await response.json();
       if (Array.isArray(data)) {
         setLatestBoosted(data.slice(0, 5));
@@ -125,7 +124,7 @@ export default function DexCheckerPage() {
       setIconError(false);
 
       const response = await fetch(
-        `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(tokenAddress)}`
+        `${process.env.NEXT_PUBLIC_TD_API}${encodeURIComponent(tokenAddress)}`
       );
       const data = await response.json();
 
@@ -182,10 +181,7 @@ export default function DexCheckerPage() {
 
   const fetchOrderStatus = async (tokenAddress: string, chainId: string) => {
     try {
-      const endpoint =
-        chainId === "solana"
-          ? `https://api.dexscreener.com/orders/v1/solana/${encodeURIComponent(tokenAddress)}`
-          : `https://api.dexscreener.com/orders/v1/${chainId}/${encodeURIComponent(tokenAddress)}`;
+      const endpoint = `${process.env.NEXT_PUBLIC_OS_API}/${chainId}/${encodeURIComponent(tokenAddress)}`;
 
       const response = await fetch(endpoint);
       if (!response.ok) throw new Error("Failed to check orders for the token");
@@ -217,7 +213,7 @@ export default function DexCheckerPage() {
     } finally {
       setLoading(false);
       if (outputRef.current) {
-        outputRef.current.scrollIntoView({ behavior: "smooth" , block: "center"});
+        outputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
   };
@@ -260,19 +256,19 @@ export default function DexCheckerPage() {
 
           {/* Centered Popular Searches */}
           <div className="text-center text-gray-400 text-sm md:text-base mt-2 w-full px-2">
-  <p>Popular Searches:</p>
-  <div className="flex justify-start md:justify-center overflow-x-auto no-scrollbar space-x-2 mt-2 w-full px-2">
-    {popularTokens.map((token) => (
-      <button
-        key={token}
-        onClick={() => handlePopularSearchClick(token)}
-        className="bg-gray-600 text-gray-300 px-2 py-1 md:px-3 md:py-2 rounded-md hover:bg-gray-500 flex-shrink-0 whitespace-nowrap"
-      >
-        {token.slice(0, 4)}...{token.slice(-4)}
-      </button>
-    ))}
-  </div>
-</div>
+            <p>Popular Searches:</p>
+            <div className="flex justify-start md:justify-center overflow-x-auto no-scrollbar space-x-2 mt-2 w-full px-2">
+              {popularTokens.map((token) => (
+                <button
+                  key={token}
+                  onClick={() => handlePopularSearchClick(token)}
+                  className="bg-gray-600 text-gray-300 px-2 py-1 md:px-3 md:py-2 rounded-md hover:bg-gray-500 flex-shrink-0 whitespace-nowrap"
+                >
+                  {token.slice(0, 4)}...{token.slice(-4)}
+                </button>
+              ))}
+            </div>
+          </div>
 
         </div>
       </div>
@@ -286,9 +282,8 @@ export default function DexCheckerPage() {
       <div ref={outputRef}>
         {!loading && hasSearched && (
           <motion.div
-            className={`p-6 rounded-lg text-center w-full max-w-md border-4 ${
-              isPaid ? "border-green-500" : "border-red-500"
-            }`}
+            className={`p-6 rounded-lg text-center w-full max-w-md border-4 ${isPaid ? "border-green-500" : "border-red-500"
+              }`}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, ease: "easeOut" }}

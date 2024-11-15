@@ -17,11 +17,11 @@ export default function Footer() {
                 <div className="footer-links">
                     <button onClick={() => openModal("partnership")} className="footer-link"><FaHandshake /> Partnership</button>
                     <button onClick={() => openModal("advertisement")} className="footer-link"><FaBullhorn /> Advertising</button>
-                    <button onClick={() => openModal("about")} className="footer-link"><FaInfoCircle /> About Us</button>
+                    <button onClick={() => openModal("about")} className="footer-link"><FaInfoCircle /> About Me</button>
                 </div>
                 <div className="footer-copy">
                     <span>© {new Date().getFullYear()} </span>
-                    <a href="https://icogemhunters.com" target="_blank" rel="noopener noreferrer" className="footer-link">ICOGemHunters</a>
+                    <a href="https://crijanblog.vercel.app" target="_blank" rel="noopener noreferrer" className="footer-link">Crijan P</a>
                     <span>. All rights reserved.</span>
                 </div>
 
@@ -79,7 +79,6 @@ export default function Footer() {
                         flex-wrap: nowrap;
                     }
 
-                    /* Responsive styling */
                     @media (max-width: 600px) {
                         .footer {
                             padding: 1rem;
@@ -102,44 +101,41 @@ export default function Footer() {
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         {modalContent === "partnership" && (
                             <>
-                                <h2>🤝 Partner with Us</h2>
+                                <h2>🤝 Partner with Me</h2>
                                 <p>
-                                    Join our ecosystem to grow together! We collaborate with investors, project owners, and service providers to enhance the crypto landscape.
+                                    Let's collaborate! I work with developers, companies, and other tech enthusiasts to bring exciting ideas to life in the web and blockchain space.
                                 </p>
                                 <p>
-                                    Explore partnership opportunities across <a href="https://icogemhunters.com" target="_blank" rel="noopener noreferrer">ICOGemHunters</a>, <a href="https://cryptews.com" target="_blank" rel="noopener noreferrer">Cryptews</a>, and <a href="https://ighgroup.io" target="_blank" rel="noopener noreferrer">IGH Groups</a>. Let’s create success together!
+                                    Feel free to reach out for partnership opportunities—whether it's development, consulting, or any other exciting venture.
                                 </p>
                             </>
                         )}
                         {modalContent === "advertisement" && (
                             <>
-                                <h2>📈 Advertise with Us</h2>
+                                <h2>📈 Advertise with Me</h2>
                                 <p>
-                                    Get in front of an engaged crypto audience on DEX Paid Checker, ICOGemHunter, and more. Connect with investors and enthusiasts who value quality crypto projects.
+                                    Get your brand in front of an engaged tech audience! Let's discuss opportunities to showcase your project or services to people who value quality in web and blockchain technology.
                                 </p>
                                 <p>
-                                    For advertising inquiries, please contact <a href="https://t.me/maxis0" target="_blank" rel="noopener noreferrer">maxis0</a> on Telegram.
+                                    For inquiries, please contact me directly through LinkedIn or email.
                                 </p>
                             </>
                         )}
                         {modalContent === "about" && (
                             <>
-                                <h2>About Us</h2>
+                                <h2>About Me</h2>
                                 <p>
-                                    At <a href="https://ighgroup.io" target="_blank" rel="noopener noreferrer">IGH Group</a>, our mission is to empower Web3 projects with strategic marketing solutions. Established in 2021, we provide investors, project owners, and service providers with effective strategies that drive high ROI and lasting impact.
+                                    I'm Crijan Pokhrel, a passionate full-stack web developer specializing in JavaScript, React, and blockchain technology. With years of experience building high-quality, user-centric applications, I bring both technical skills and creativity to every project.
                                 </p>
                                 <p>
-                                    Our ecosystem includes <a href="https://icogemhunters.com" target="_blank" rel="noopener noreferrer">ICOGemHunters</a> (ICO Calendar), <a href="https://cryptews.com" target="_blank" rel="noopener noreferrer">Cryptews</a> (Crypto News Aggregator), and <a href="https://t.me/gemhuntersclub_bot" target="_blank" rel="noopener noreferrer">Gems</a> (Play-to-Earn Mini App).
-                                </p>
-                                <p>
-                                    With a reliable team, goal-oriented strategies, and deep Web3 expertise, we’re here to support your journey in the decentralized space.
+                                    I enjoy pushing the boundaries of modern web development and am always open to new challenges and collaborations.
                                 </p>
                             </>
                         )}
                         <div className="modal-buttons">
                             <button onClick={closeModal} className="modal-button close-button">Close</button>
                             {modalContent !== "about" && (
-                                <a href="https://t.me/maxis0" target="_blank" rel="noopener noreferrer" className="modal-button chat-button">Let's Chat</a>
+                                <a href="https://t.me/crijanp" target="_blank" rel="noopener noreferrer" className="modal-button chat-button">Let's Chat</a>
                             )}
                         </div>
                     </div>
@@ -180,15 +176,6 @@ export default function Footer() {
                             line-height: 1.4;
                         }
 
-                        .modal-content a {
-                            color: #6c63ff;
-                            transition: color 0.3s;
-                        }
-
-                        .modal-content a:hover {
-                            color: #5a55cc;
-                        }
-
                         .modal-buttons {
                             display: flex;
                             justify-content: center;
@@ -215,10 +202,7 @@ export default function Footer() {
 
                         .chat-button {
                             background-color: white;
-                            text-decoration:none;
-                            underline:none;
-                            color: white;
-
+                            color: #333;
                         }
 
                         .chat-button:hover {
@@ -235,7 +219,6 @@ export default function Footer() {
                             color: #6c63ff;
                         }
 
-                        /* Responsive adjustments */
                         @media (max-width: 400px) {
                             .modal-content {
                                 padding: 1rem;
